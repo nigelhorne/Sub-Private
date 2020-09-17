@@ -51,8 +51,8 @@ jobs:
         - cinst -y strawberryperl
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
       install:
-        - cpanm --notest --installdeps .
-	- cpanm -q -n --skip-satisfied Module::Build
+        - cpanm -q -n --skip-satisfied --notest --installdeps .
+        - cpanm -q -n --skip-satisfied Module::Build Test::Most
       script:
         - perl Build.PL
         - ./Build
