@@ -55,7 +55,7 @@ Peter Makholm, C<< <peter at makholm.net> >>
 
 =head1 MAINTAINER
 
-Nigel Horne, C<< <njh@bandman.co.uk> >>
+Nigel Horne, C<< <njh@bandsman.co.uk> >>
 
 =head1 BUGS
 
