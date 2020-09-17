@@ -51,10 +51,10 @@ By using the attribute you get truly private methods.
 
 =head1 AUTHOR
 
+Original Author:
 Peter Makholm, C<< <peter at makholm.net> >>
 
-=head1 MAINTAINER
-
+Current maintainer:
 Nigel Horne, C<< <njh@bandsman.co.uk> >>
 
 =head1 BUGS
