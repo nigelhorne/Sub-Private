@@ -7,3 +7,5 @@
 ^MANIFEST\.SKIP$
 \.tar\.gz$
 .git
+^MYMETA\.yml$
+^MYMETA\.json$
