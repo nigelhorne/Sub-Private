@@ -65,8 +65,6 @@ automatically be notified of progress on your bug as I make changes.
 
 =head1 SEE ALSO
 
-L<Sub::Deprecated> - provides a :Deprecated attribute for marking
-a sub as deprecated. Calling it generates a warning.
 L<namespace::clean>
 
 =head1 SUPPORT
@@ -75,7 +73,6 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Sub::Private
 
-
 You can also look for information at:
 
 =over 4
@@ -83,10 +80,6 @@ You can also look for information at:
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Sub-Private>
 
 =item * CPAN Ratings
 
@@ -98,9 +91,7 @@ L<http://search.cpan.org/dist/Sub-Private>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
-
 
 =head1 COPYRIGHT & LICENSE
 

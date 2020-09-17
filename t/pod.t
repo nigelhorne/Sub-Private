@@ -2,9 +2,9 @@
 
 use strict;
 use warnings;
-use Test::More;
+use Test::Most;
 
-if(not $ENV{AUTHOR_TESTING}) {
+if(not $ENV{RELEASE_TESTING}) {
 	plan(skip_all => 'Author tests not required for installation');
 }
 

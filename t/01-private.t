@@ -1,5 +1,6 @@
 #!perl -T
 
+use strict;
 use lib 't/';
 
 use Test::More tests => 5;
