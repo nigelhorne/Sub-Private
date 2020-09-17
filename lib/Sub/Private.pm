@@ -46,9 +46,8 @@ sub UNIVERSAL::Private :ATTR(CODE,BEGIN) {
 
 =head1 DESCRIPTION
 
-This module provide a C<:Private> attribute for subroutines. By using the
-attribut you get truly private methods.
-
+This module provide a C<:Private> attribute for subroutines.
+By using the attribute you get truly private methods.
 
 =head1 AUTHOR
 
@@ -66,7 +65,9 @@ automatically be notified of progress on your bug as I make changes.
 
 =head1 SEE ALSO
 
-namespace::clean
+L<Sub::Deprecated> - provides a :Deprecated attribute for marking
+a sub as deprecated. Calling it generates a warning.
+L<namespace::clean>
 
 =head1 SUPPORT
 
