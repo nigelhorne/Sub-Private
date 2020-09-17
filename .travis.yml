@@ -34,10 +34,10 @@ sudo: false
 before_install:
   # - sudo apt-get update -q
   # - sudo apt-get install sqlite3 libdbi-perl libdbd-sqlite3-perl
-  - cpanm -v -n Module::Build Devel::Cover::Report::Coveralls Test::Pod::Spelling::CommonMistakes Test::Portability::Files Test::Pod::Coverage
+  - cpanm -q --skip-satisfied -n Module::Build Devel::Cover::Report::Coveralls Test::Pod::Spelling::CommonMistakes Test::Portability::Files Test::Pod::Coverage
 
 install:
-  - cpanm -v --installdeps --notest .
+  - cpanm -q --skip-satisfied -n --installdeps --notest .
 
 script:
   perl Build.PL && ./Build && cover -test -report coveralls
@@ -52,6 +52,7 @@ jobs:
         - export "PATH=/c/Strawberry/perl/site/bin:/c/Strawberry/perl/bin:/c/Strawberry/c/bin:$PATH"
       install:
         - cpanm --notest --installdeps .
+	- cpanm -q -n --skip-satisfied Module::Build
       script:
         - perl Build.PL
         - ./Build
