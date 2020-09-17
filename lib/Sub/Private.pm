@@ -9,7 +9,6 @@ use namespace::clean     qw();
 use B::Hooks::EndOfScope qw(on_scope_end);
 use Sub::Identify        qw(get_code_info);
 
-
 =head1 NAME
 
 Sub::Private - Private subroutines and methods
@@ -55,12 +54,15 @@ attribut you get truly private methods.
 
 Peter Makholm, C<< <peter at makholm.net> >>
 
+=head1 MAINTAINER
+
+Nigel Horne, C<< <njh@bandman.co.uk> >>
+
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-sub-private at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
 
 =head1 SEE ALSO
 
@@ -105,7 +107,6 @@ Copyright 2009 Peter Makholm, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
-
 
 =cut
 
