@@ -1,8 +1,10 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
 use Module::Build;
 
-my $builder = Module::Build->new(
+Module::Build->new(
     module_name         => 'Sub::Private',
     license             => 'perl',
     # dist_author         => 'Peter Makholm <peter@makholm.net>',
@@ -22,9 +24,7 @@ my $builder = Module::Build->new(
     meta_merge => {
         resources => {
             # repository => 'http://github.com/pmakholm/sub-private-perl/tree/master',
-            repository => 'http://github.com/nigelhorne/sub-private-perl/tree/master',
+            repository => 'http://github.com/nigelhorne/Sub-Private/tree/master',
         }
     },
-);
-
-$builder->create_build_script();
+)->create_build_script();
