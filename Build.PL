@@ -5,7 +5,7 @@ use warnings;
 use Module::Build;
 
 Module::Build->new(
-    module_name         => 'Sub::Private',
+	module_name         => 'Sub::Private',
     license             => 'perl',
     # dist_author         => 'Peter Makholm <peter@makholm.net>',
     dist_author         => 'Nigel Horne <njh@bandsman.co.uk>',
@@ -24,7 +24,8 @@ Module::Build->new(
     meta_merge => {
         resources => {
             # repository => 'http://github.com/pmakholm/sub-private-perl/tree/master',
-            repository => 'http://github.com/nigelhorne/Sub-Private/tree/master',
+		repository => 'http://github.com/nigelhorne/Sub-Private',
+		bugtracker => 'http://github.com/nigelhorne/Sub-Private/issues',
         }
     },
 )->create_build_script();
