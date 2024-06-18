@@ -2,13 +2,14 @@
 
 use strict;
 use warnings;
-use Test::Needs 'Test::EOL';
+use Test::Needs 'Test::EOF';
 use Test::Most;
 
 BEGIN {
 	if($ENV{'AUTHOR_TESTING'}) {
-		Test::EOL->import();
-		all_perl_files_ok({ trailing_whitespace => 1 });
+		Test::EOF->import();
+		all_perl_files_ok({ minimum_newlines => 1, maximum_newlines => 4 });
+		done_testing();
 	} else {
 		plan(skip_all => 'Author tests not required for installation');
 	}

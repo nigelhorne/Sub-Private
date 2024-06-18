@@ -10,6 +10,7 @@ t/00-load.t
 t/01-private.t
 t/coverage.t
 t/critic.t
+t/eof.t
 t/eol.t
 t/Foo.pm
 t/links.t

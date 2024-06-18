@@ -28,4 +28,7 @@ Module::Build->new(
 		bugtracker => 'http://github.com/nigelhorne/Sub-Private/issues',
         }
     },
+    test_requires => {
+    	'Test::Needs' => 0,
+    }
 )->create_build_script();
