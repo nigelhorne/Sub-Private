@@ -23,12 +23,14 @@ Module::Build->new(
     add_to_cleanup      => [ 'Sub-Private-*' ],
     meta_merge => {
         resources => {
-            # repository => 'http://github.com/pmakholm/sub-private-perl/tree/master',
-		repository => 'https://github.com/nigelhorne/Sub-Private',
+		# repository => 'https://github.com/nigelhorne/Sub-Private',
+		# RT#154368
+		repository => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Sub-Private',
 		bugtracker => 'https://github.com/nigelhorne/Sub-Private/issues',
         }
     },
     test_requires => {
+	'Test::Most' => 0,	# RT#154368
     	'Test::Needs' => 0,
     }
 )->create_build_script();

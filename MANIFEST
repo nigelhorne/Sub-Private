@@ -5,7 +5,6 @@ examples/private-test.pl
 lib/Sub/Private.pm
 MANIFEST
 MANIFEST.SKIP
-META.json
 README
 README.md
 t/00-load.t
