@@ -59,6 +59,8 @@ Nigel Horne, C<< <njh@bandsman.co.uk> >>
 
 =head1 BUGS
 
+Works for libraries, not classes.
+
 Please report any bugs or feature requests to C<bug-sub-private at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.

@@ -10,6 +10,7 @@ Module::Build->new(
     # dist_author         => 'Peter Makholm <peter@makholm.net>',
     dist_author         => 'Nigel Horne <njh@bandsman.co.uk>',
     dist_version_from   => 'lib/Sub/Private.pm',
+    configure_requires => { 'Module::Build' => 0.42 },
     build_requires => {
         'Test::More' => 0,
         'Test::NoWarnings' => 0,
