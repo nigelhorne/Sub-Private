@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 # VERSION
 
-Version 0.02
+Version 0.04
 
 # SYNOPSIS
 
@@ -53,10 +53,6 @@ You can also look for information at:
 - RT: CPAN's request tracker
 
     [http://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private](http://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private)
-
-- CPAN Ratings
-
-    [http://cpanratings.perl.org/d/Sub-Private](http://cpanratings.perl.org/d/Sub-Private)
 
 - Search CPAN
 

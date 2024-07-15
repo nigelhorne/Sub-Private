@@ -5,6 +5,7 @@ examples/private-test.pl
 lib/Sub/Private.pm
 MANIFEST
 MANIFEST.SKIP
+META.json
 README
 README.md
 t/00-load.t
@@ -21,6 +22,7 @@ t/no404s.t
 t/noopentickets.t
 t/noplan.t
 t/pod-cm.t
+t/pod-synopsis.t
 t/pod.t
 t/port.t
 t/snippets.t
