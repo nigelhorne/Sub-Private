@@ -24,10 +24,10 @@ Module::Build->new(
     add_to_cleanup      => [ 'Sub-Private-*' ],
     meta_merge => {
         resources => {
-		# repository => 'https://github.com/nigelhorne/Sub-Private',
+		repository => 'https://github.com/nigelhorne/Sub-Private',
 		# RT#154368
-		repository => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Sub-Private',
-		bugtracker => 'https://github.com/nigelhorne/Sub-Private/issues',
+		# bugtracker => 'https://github.com/nigelhorne/Sub-Private/issues',
+		bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Sub-Private',
         }
     },
     test_requires => {
