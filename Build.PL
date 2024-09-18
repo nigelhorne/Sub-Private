@@ -12,10 +12,9 @@ Module::Build->new(
     dist_version_from   => 'lib/Sub/Private.pm',
     configure_requires => { 'Module::Build' => 0.42 },
     build_requires => {
-        'Test::More' => 0,
+        'Test::Most' => 0,
         'Test::NoWarnings' => 0,
-    },
-    requires => {
+    }, requires => {
         'Attribute::Handlers'  => 0,
         'namespace::clean'     => 0,
         'B::Hooks::EndOfScope' => 0,
@@ -29,8 +28,8 @@ Module::Build->new(
 		# bugtracker => 'https://github.com/nigelhorne/Sub-Private/issues',
 		bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Sub-Private',
         }
-    },
-    test_requires => {
+    }, test_requires => {
+	'Test::DescribeMe' => 0,
 	'Test::Most' => 0,	# RT#154368
     	'Test::Needs' => 0,
     }
