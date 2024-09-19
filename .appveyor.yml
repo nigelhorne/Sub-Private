@@ -40,8 +40,7 @@ install:
   - cmd: 'echo End install at: & time /t'
 
 build_script:
-  - perl Makefile.PL
+  - perl Build.PL
 
 test_script:
-  - cmd: gmake test
-  - sh: make test
+  - ./Build test
