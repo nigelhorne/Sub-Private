@@ -65,3 +65,5 @@
 \.releaserc
 \.lwpcookies
 Sub-.*
+CLAUDE.md
+\.claude

@@ -1,7 +1,7 @@
 Revision history for Sub-Private
 
 0.05	
-	[ Enhacements ]
+	[ Enhancements ]
 	Added enforce mode for OO-safe private access ($config{mode} = 'enforce')
 	Added declarative form: use Sub::Private qw(_helper) (enforce mode only)
 	Added $BYPASS and %config public variables
@@ -14,6 +14,10 @@ Revision history for Sub-Private
 	[ Testing ]
 	Added test suite: basic.t, enforce.t, bypass.t, declarative.t, edge_cases.t,
 	    function.t, unit.t, integration.t
+
+	[ Build ]
+	Migrated build system from Module::Build (Build.PL) to ExtUtils::MakeMaker (Makefile.PL)
+	Updated CI: .travis.yml and .appveyor.yml use perl Makefile.PL && make && make test
 
 0.04	Mon Jul 15 07:57:40 EDT 2024
 	Added dependency on Test::More (RT#154368)

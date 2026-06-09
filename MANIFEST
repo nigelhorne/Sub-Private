@@ -1,4 +1,4 @@
-Build.PL
+Makefile.PL
 Changes
 examples/Foo.pm
 examples/private-test.pl
