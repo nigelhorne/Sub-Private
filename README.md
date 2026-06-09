@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 # VERSION
 
-Version 0.04
+Version 0.05
 
 # SYNOPSIS
 
@@ -23,10 +23,10 @@ Version 0.04
 
 # DESCRIPTION
 
-Enforces truly private access on subroutines.  A subroutine decorated with
-`:Private` (or named in `use Sub::Private qw(...)` when in enforce mode)
-may only be called from within its defining package.  Subclasses do not
-inherit access -- private means _this package only_.
+Enforces strictly private access on subroutines.  A subroutine decorated
+with `:Private` (or named in `use Sub::Private qw(...)` when in enforce
+mode) may only be called from within its defining package.  Subclasses do
+not inherit access: private means _this package only_.
 
 ## Two enforcement modes
 
@@ -36,7 +36,7 @@ inherit access -- private means _this package only_.
     [namespace::clean](https://metacpan.org/pod/namespace%3A%3Aclean).  Direct (non-method) function calls compiled before
     cleanup still work because Perl optimises them to direct opcode references.
     OO method dispatch (`$self-`name>) does not work for private subs in this
-    mode because it looks up the symbol table at runtime.
+    mode because method lookup uses the symbol table at runtime.
 
     This is the default mode and is backward-compatible with all existing code.
 
@@ -48,17 +48,20 @@ inherit access -- private means _this package only_.
 
     Enable before declaring your first private sub:
 
-        $Sub::Private::config{mode} = 'enforce';
+        BEGIN { $Sub::Private::config{mode} = 'enforce' }
         package MyClass;
         use Sub::Private;
         sub _helper :Private { ... }
 
 ## Bypass for testing
 
-Either condition alone (OR logic) disables all access checks in enforce mode:
+Either condition alone (OR logic) disables all access checks in enforce
+mode:
 
-- `$Sub::Private::BYPASS` set to a true value.  Use `local` in tests.
-- `$ENV{HARNESS_ACTIVE}` set (the convention used by [Test::Harness](https://metacpan.org/pod/Test%3A%3AHarness)/prove).
+- `$Sub::Private::BYPASS` set to a true value.  Use `local` in
+tests.
+- `$ENV{HARNESS_ACTIVE}` set (the convention used by
+[Test::Harness](https://metacpan.org/pod/Test%3A%3AHarness)/prove).
 
 `$Sub::Private::BYPASS` is the recommended form for new test code.
 The `HARNESS_ACTIVE` bypass can be disabled:
@@ -79,7 +82,7 @@ The `HARNESS_ACTIVE` bypass can be disabled:
 ## `$BYPASS`
 
 Set to a true value to disable all access checks (enforce mode only).
-Use `local` in tests; see BYPASS section.
+Use `local` in tests; see ["Bypass for testing"](#bypass-for-testing).
 
 ## `%config`
 
@@ -87,12 +90,14 @@ Module-level configuration hash.  Supported keys:
 
 - `mode`
 
-    `'namespace'` (default) or `'enforce'`.
+    `'namespace'` (default) or `'enforce'`.  Must be set in a `BEGIN`
+    block before `use Sub::Private` to take effect at `CHECK` time.
 
 - `harness_bypass`
 
     When true (default), access checks are skipped whenever
-    `$ENV{HARNESS_ACTIVE}` is set.
+    `$ENV{HARNESS_ACTIVE}` is set.  Set to 0 to test enforcement under
+    `prove`.
 
 # PUBLIC INTERFACE
 
@@ -105,32 +110,120 @@ Module-level configuration hash.  Supported keys:
 
 Called automatically by `use Sub::Private`.
 
-With **no arguments**: makes the `:Private` attribute globally available.
+With **no arguments**: makes the `:Private` attribute globally available
+via `UNIVERSAL`.  No other action is taken.
 
-With **one or more sub names**: registers those subs in the calling package
-for wrapping at `CHECK` time (or immediately if past `CHECK`).  Requires
-`$Sub::Private::config{mode}` to be `'enforce'`; croaks otherwise.
+With **one or more sub names**: registers those named subs in the calling
+package for access-enforcement wrapping at `CHECK` time.  If `CHECK`
+has already fired (e.g., when calling from a test), wrapping is applied
+immediately.  Requires `$Sub::Private::config{mode}` to equal
+`'enforce'`; croaks otherwise.
+
+### Arguments
+
+- `@subs` (optional)
+
+    Zero or more Perl sub names.  Each must be a defined, non-reference scalar
+    matching `/\A[_a-zA-Z]\w*\z/`.  `undef`, references, empty strings, and
+    names starting with a digit or containing hyphens are all rejected.
+
+### Returns
+
+The class name (`'Sub::Private'`) as a plain string in all cases.
+
+### Side effects
+
+- Pre-CHECK: appends `[$owner_pkg, $sub_name]` pairs to the
+internal `@_pending` list.
+- Post-CHECK: installs wrapper closures directly in the calling
+package's stash.
+
+### Example
+
+    BEGIN { $Sub::Private::config{mode} = 'enforce' }
+    package MyClass;
+    use Sub::Private qw(_helper _init);
+
+    sub new     { bless {}, shift }
+    sub _helper { ... }    # wrapped at CHECK time
+    sub _init   { ... }    # wrapped at CHECK time
+    sub run     { my $s = shift; $s->_helper; $s->_init }
+
+### API specification
+
+#### Input
+
+    # No-argument form: always valid.
+    Sub::Private->import();
+
+    # Declarative form (enforce mode only):
+    {
+        subs => {
+            type     => 'array',
+            optional => 1,
+            element  => {
+                type  => 'string',
+                regex => qr/\A[_a-zA-Z]\w*\z/,
+            },
+        }
+    }
+
+#### Output
+
+    { type => 'string' }    # returns the class name 'Sub::Private'
 
 ### MESSAGES
 
-    Message                                         Meaning
-    -----------------------------------------------  ----------------------------------
-    "Sub::Private->import: declarative form          use Sub::Private qw(...) attempted
-     requires mode => 'enforce'"                     while mode is 'namespace'.  Set
-                                                     $config{mode} = 'enforce' first.
+    Message                                              Meaning / Action
+    ---------------------------------------------------  -----------------------------------------------
+    "Sub::Private->import: declarative form requires     use Sub::Private qw(...) was called while
+     mode => 'enforce'"                                  $config{mode} is not 'enforce'.  Set
+                                                         $config{mode} = 'enforce' in a BEGIN block
+                                                         before "use Sub::Private".
 
-    "Sub::Private->import: 'NAME' is not a           A sub name failed the identifier
-     valid Perl identifier"                          regex /\A[_a-zA-Z]\w*\z/.
+    "Sub::Private->import: 'NAME' is not a valid         The sub name failed the identifier regex.
+     Perl identifier"                                    Check for typos, hyphens, leading digits,
+                                                         undef, or reference values in the import list.
 
-    "Sub::Private: PKG::NAME is not defined"         Named sub not found at wrap time.
+    "Sub::Private: PKG::NAME is not defined"             The named sub was not found in the stash at
+                                                         wrap time.  Define the sub before import()
+                                                         runs, or before CHECK fires.
+
+### FORMAL SPECIFICATION
+
+    -- Type abbreviations
+    SubName == seq CHAR      -- non-empty Perl identifier string
+
+    -- Valid identifier predicate
+    valid_id : SubName -> BOOL
+    valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
+
+    -- Pre-condition (declarative form)
+    +-ImportPre-----------------------------------------+
+    | config.mode = 'enforce'                           |
+    | forall n in subs . valid_id(n)                    |
+    | forall n in subs . defined(&{caller + '::' + n})  |
+    +---------------------------------------------------+
+
+    -- Post-condition (pre-CHECK path)
+    +-ImportPost_PreCheck-------------------------------+
+    | @_pending' = @_pending                            |
+    |            union { (caller, n) | n in subs }      |
+    +---------------------------------------------------+
+
+    -- Post-condition (post-CHECK path)
+    +-ImportPost_PostCheck------------------------------+
+    | forall n in subs .                                |
+    |   stash(caller, n) = wrapper_closure(caller, n)   |
+    +---------------------------------------------------+
 
 # KNOWN LIMITATIONS
 
 - `namespace` mode: OO dispatch fails for private subs
 
-    `$self-`\_helper> from within the owner package fails because method dispatch
-    uses the symbol table at runtime, which no longer contains the entry.  Use
-    `enforce` mode for OO classes.
+    `$self-`\_helper> from within the owner package fails because method
+    dispatch uses the symbol table at runtime, which no longer contains the
+    entry.  Use `enforce` mode for OO classes.
 
 - `enforce` mode: runtime-only
 
@@ -140,7 +233,7 @@ for wrapping at `CHECK` time (or immediately if past `CHECK`).  Requires
 
     A raw code reference obtained **before** wrapping (via `can()` or
     `\&Foo::_helper`) bypasses the check.  The attribute form prevents this
-    because wrapping happens at compile (CHECK) time.
+    because wrapping happens at CHECK time.
 
 - UNIVERSAL namespace pollution
 
@@ -153,12 +246,9 @@ for wrapping at `CHECK` time (or immediately if past `CHECK`).  Requires
 [Carp](https://metacpan.org/pod/Carp) (core),
 [Attribute::Handlers](https://metacpan.org/pod/Attribute%3A%3AHandlers) (core since 5.8),
 [Readonly](https://metacpan.org/pod/Readonly),
-[Scalar::Util](https://metacpan.org/pod/Scalar%3A%3AUtil) (core),
-[Params::Get](https://metacpan.org/pod/Params%3A%3AGet),
 [Params::Validate::Strict](https://metacpan.org/pod/Params%3A%3AValidate%3A%3AStrict),
 [Return::Set](https://metacpan.org/pod/Return%3A%3ASet),
 [namespace::clean](https://metacpan.org/pod/namespace%3A%3Aclean),
-[B::Hooks::EndOfScope](https://metacpan.org/pod/B%3A%3AHooks%3A%3AEndOfScope),
 [Sub::Identify](https://metacpan.org/pod/Sub%3A%3AIdentify).
 
 # SEE ALSO
@@ -169,7 +259,8 @@ rather than strictly private access.
 
 ## FORMAL SPECIFICATION
 
-The following Z-notation schemas formally specify the `CheckAccess` operation.
+The following Z-notation schemas formally specify the `CheckAccess`
+operation.
 
     -- Type abbreviations
     Package  == seq CHAR     -- a non-empty Perl package name string
@@ -183,9 +274,9 @@ The following Z-notation schemas formally specify the `CheckAccess` operation.
     -- System state
     +-Registry-------------------------------------------+
     | private   : P (Package x SubName)                  |
-    | bypass    : BOOL                                   |
-    | config    : { mode : seq CHAR,                     |
-    |               harness_bypass : BOOL }              |
+    | bypass    : BOOL                                    |
+    | config    : { mode : seq CHAR,                      |
+    |               harness_bypass : BOOL }               |
     +----------------------------------------------------+
 
     -- Initial state
@@ -194,8 +285,8 @@ The following Z-notation schemas formally specify the `CheckAccess` operation.
     |----------------------------------------------------|
     | private   = {}                                     |
     | bypass    = false                                  |
-    | config    = { mode |-> 'namespace',                |
-    |               harness_bypass |-> true }            |
+    | config    = { mode |-> 'namespace',                 |
+    |               harness_bypass |-> true }             |
     +----------------------------------------------------+
 
     -- Bypass predicate

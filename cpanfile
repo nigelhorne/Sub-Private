@@ -3,13 +3,10 @@
 requires 'perl', '5.008';
 
 requires 'Attribute::Handlers';
-requires 'B::Hooks::EndOfScope';
 requires 'Carp';
-requires 'Params::Get';
 requires 'Params::Validate::Strict', '0.33';
 requires 'Readonly';
 requires 'Return::Set';
-requires 'Scalar::Util';
 requires 'Sub::Identify';
 requires 'namespace::clean';
 

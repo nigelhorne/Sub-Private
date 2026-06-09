@@ -295,7 +295,7 @@ subtest 'UNIVERSAL registration: stranger still blocked' => sub {
 # SECTION 7: Moo integration (skip if Moo not available)
 # ===================================================================
 
-SKIP: {
+subtest 'Moo integration test' => sub {
 	test_needs 'Moo';
 
 	{
@@ -323,7 +323,7 @@ SKIP: {
 
 	throws_ok { IntMooStranger->new->probe }
 		qr/private subroutine/, 'Moo: stranger blocked from wrapped sub';
-}
+};
 
 # ===================================================================
 # SECTION 8: $BYPASS and %config across multiple active objects

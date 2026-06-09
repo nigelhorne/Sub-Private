@@ -21,14 +21,11 @@ WriteMakefile(
 		? ('LICENSE' => 'perl') : ()),
 	PREREQ_PM => {
 		'Attribute::Handlers'      => 0,
-		'B::Hooks::EndOfScope'     => 0,
 		'Carp'                     => 0,
 		'namespace::clean'         => 0,
-		'Params::Get'              => 0,
 		'Params::Validate::Strict' => 0.33,
 		'Readonly'                 => 0,
 		'Return::Set'              => 0,
-		'Scalar::Util'             => 0,
 		'Sub::Identify'            => 0,
 	}, TEST_REQUIRES => {
 		'IPC::System::Simple' => 0,

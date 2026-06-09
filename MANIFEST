@@ -22,6 +22,7 @@ t/Foo.pm
 t/function.t
 t/integration.t
 t/links.t
+t/locales.t
 t/manifest.t
 t/metrics.t
 t/no404s.t

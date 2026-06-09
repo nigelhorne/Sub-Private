@@ -457,10 +457,11 @@ subtest '_process_one(): guard fires even with HARNESS_ACTIVE=1 when harness_byp
 # ===================================================================
 
 if ($have_mockingbird) {
-	subtest 'import(): spies confirm get_params and validate_strict are called' => sub {
-		plan tests => 2;
+	subtest 'import(): spy confirms validate_strict is called' => sub {
+		plan tests => 1;
 
-		my $spy_gp = Test::Mockingbird::spy('Sub::Private::get_params');
+		# get_params was removed from import() (positional args need no normalisation).
+		# validate_strict is still called once per sub name for identifier validation.
 		my $spy_vs = Test::Mockingbird::spy('Sub::Private::validate_strict');
 
 		{
@@ -469,10 +470,7 @@ if ($have_mockingbird) {
 			Sub::Private->import('_spy_sub');
 		}
 
-		my @gp_calls = $spy_gp->();
 		my @vs_calls = $spy_vs->();
-
-		ok scalar(@gp_calls) >= 1, 'get_params invoked during import()';
 		ok scalar(@vs_calls) >= 1, 'validate_strict invoked during import()';
 
 		Test::Mockingbird::restore_all();
