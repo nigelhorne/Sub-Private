@@ -4,14 +4,8 @@
 use strict;
 use warnings;
 
-BEGIN {
-	my ($home) = ($ENV{HOME} =~ /\A(.+)\z/ms);
-	unshift @INC, 'lib',
-		"$home/src/njh/Test-Mockingbird/lib",
-		"$home/src/njh/Test-Returns/lib";
-}
-
 use Test::Most;
+use Test::Needs;
 use Readonly;
 
 my $have_returns     = eval { require Test::Returns; Test::Returns->import; 1 };
@@ -302,7 +296,7 @@ subtest 'UNIVERSAL registration: stranger still blocked' => sub {
 # ===================================================================
 
 SKIP: {
-	skip 'Moo not available', 3 unless eval { require Moo; 1 };
+	test_needs 'Moo';
 
 	{
 		package IntMooBase;
