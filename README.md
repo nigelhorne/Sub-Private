@@ -207,6 +207,16 @@ package's stash.
     `\&Foo::_helper`) bypasses the check.  The attribute form prevents this
     because wrapping happens at CHECK time.
 
+- `enforce` mode: `can()` leaks private method existence
+
+    In `enforce` mode the original sub is replaced by a wrapper closure, so
+    `->can('_helper')` returns the wrapper (truthy) even to callers outside
+    the owner package.  In `namespace` mode the stash entry is deleted entirely,
+    so `->can` correctly returns `undef`.  A future release may inject a
+    caller-aware `can()` override into each class that uses `enforce` mode,
+    returning the coderef only when the caller is the owner package and `undef`
+    for everyone else.
+
 - UNIVERSAL namespace pollution
 
     The `:Private` attribute is installed in `UNIVERSAL`, which is

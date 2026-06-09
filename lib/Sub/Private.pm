@@ -505,6 +505,16 @@ A raw code reference obtained B<before> wrapping (via C<can()> or
 C<\&Foo::_helper>) bypasses the check.  The attribute form prevents this
 because wrapping happens at CHECK time.
 
+=item C<enforce> mode: C<can()> leaks private method existence
+
+In C<enforce> mode the original sub is replaced by a wrapper closure, so
+C<< ->can('_helper') >> returns the wrapper (truthy) even to callers outside
+the owner package.  In C<namespace> mode the stash entry is deleted entirely,
+so C<< ->can >> correctly returns C<undef>.  A future release may inject a
+caller-aware C<can()> override into each class that uses C<enforce> mode,
+returning the coderef only when the caller is the owner package and C<undef>
+for everyone else.
+
 =item UNIVERSAL namespace pollution
 
 The C<:Private> attribute is installed in C<UNIVERSAL>, which is
