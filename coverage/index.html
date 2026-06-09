@@ -134,7 +134,7 @@
 	<a href="https://github.com/nigelhorne/Sub-Private">
 		<img src="https://img.shields.io/github/stars/nigelhorne/Sub-Private?style=social" alt="GitHub stars">
 	</a>
-	<img src="https://img.shields.io/badge/coverage-98%25-brightgreen" alt="Coverage badge">
+	<img src="https://img.shields.io/badge/coverage-100%25-brightgreen" alt="Coverage badge">
 </div>
 <h1>Sub::Private</h1><h2>Coverage Report</h2>
 <table data-sort-col="0" data-sort-order="asc">
@@ -153,9 +153,9 @@
 
 <tbody>
 
-<tr class="high"><td><a href="blib-lib-Sub-Private-pm.html" title="View coverage line by line" target="_blank">lib/Sub/Private.pm</a> <a href="https://github.com/nigelhorne/Sub-Private/blob/769538ebf5e53fe74601e52c2207385323219ec0/lib/Sub/Private.pm" class="icon-link" title="View source on GitHub">&#128269;</a><canvas class="sparkline" width="80" height="20" data-points="98.3,96.7,98.3"></canvas></td><td>99.0</td><td>96.9</td><td>95.7</td><td>100.0</td><td><span class="coverage-badge badge-good" title="Excellent coverage">98.3%</span></td><td class="positive" title="Previous (sparkline): 96.7%">&#9650; 1.6%</td></tr>
-<tr class="summary-row nosort"><td colspan="2"><strong>Summary</strong></td><td colspan="2">1 files</td><td colspan="3">Avg: 98%, Low: 0</td></tr>
-<tr class="high nosort"><td><strong>Total</strong></td><td>99.0</td><td>96.9</td><td>95.7</td><td>100.0</td><td colspan="2"><strong>98.3</strong></td></tr>
+<tr class="high"><td><a href="blib-lib-Sub-Private-pm.html" title="View coverage line by line" target="_blank">lib/Sub/Private.pm</a> <a href="https://github.com/nigelhorne/Sub-Private/blob/91a4c833729a77f4f9b447d99730de8593bce05c/lib/Sub/Private.pm" class="icon-link" title="View source on GitHub">&#128269;</a><canvas class="sparkline" width="80" height="20" data-points="98.3,96.7,98.3,98.3"></canvas></td><td>100.0</td><td>100.0</td><td>100.0</td><td>100.0</td><td><span class="coverage-badge badge-good" title="Excellent coverage">100.0%</span></td><td class="neutral" title="Previous (sparkline): 98.3%">&#9679; 0.0%</td></tr>
+<tr class="summary-row nosort"><td colspan="2"><strong>Summary</strong></td><td colspan="2">1 files</td><td colspan="3">Avg: 100%, Low: 0</td></tr>
+<tr class="high nosort"><td><strong>Total</strong></td><td>100.0</td><td>100.0</td><td>100.0</td><td>100.0</td><td colspan="2"><strong>100.0</strong></td></tr>
 </tbody></table>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em;">
 	<div>
@@ -204,7 +204,8 @@ function linearRegression(data) {
 
 const dataPoints = [ { x: "2026-06-09T16:28:33+00:00", y: 96.6666666666667, delta: 0, url: "https://github.com/nigelhorne/Sub-Private/commit/7c9414867ddd691db197b315fb2fd705f77196d1", label: "2026-06-09T16:28:33+00:00", pointBackgroundColor: "gray", comment: "Update mutation results (2026-06-09 2f73542)" },
 { x: "2026-06-09T17:19:20+00:00", y: 98.3333333333333, delta: 1.7, url: "https://github.com/nigelhorne/Sub-Private/commit/45d0ba4f692b20357c1439905a3a775d7b0eec6b", label: "2026-06-09T17:19:20+00:00", pointBackgroundColor: "green", comment: "Update mutation results (2026-06-09 efce511)" },
-{ x: "2026-06-09T17:32:48+00:00", y: 98.3333333333333, delta: 0.0, url: "https://github.com/nigelhorne/Sub-Private/commit/88c7711147085bec99b57949f9455a286d7e8395", label: "2026-06-09T17:32:48+00:00", pointBackgroundColor: "gray", comment: "Update mutation results (2026-06-09 81cfaaf)" } ];
+{ x: "2026-06-09T17:32:48+00:00", y: 98.3333333333333, delta: 0.0, url: "https://github.com/nigelhorne/Sub-Private/commit/88c7711147085bec99b57949f9455a286d7e8395", label: "2026-06-09T17:32:48+00:00", pointBackgroundColor: "gray", comment: "Update mutation results (2026-06-09 81cfaaf)" },
+{ x: "2026-06-09T18:34:27+00:00", y: 98.3333333333333, delta: 0.0, url: "https://github.com/nigelhorne/Sub-Private/commit/99e6f76f8e7b617405fa088d498d481f4be11ad3", label: "2026-06-09T18:34:27+00:00", pointBackgroundColor: "gray", comment: "Update mutation results (2026-06-09 769538e)" } ];
 const regressionPoints = linearRegression(dataPoints);
 // Try to register the zoom plugin (handles different UMD builds)
 (function registerZoomPlugin(){
@@ -555,10 +556,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <h2>Mutation Report</h2>
 <h3>Mutation Summary</h3>
 <ul>
-<li><b>Score</b>: 100%</li>
-<li><b>Total</b>: 0</li>
+<li><b>Score</b>: 100.00%</li>
+<li><b>Total</b>: 3</li>
 <li><b>Killed</b>: 
-0
+3
 </li>
 <li><b>Survived</b>: 
 0
@@ -570,21 +571,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <tr><th>File</th><th>Total</th><th>Killed</th><th>Survivors</th><th>Skipped</th><th>Score%</th><th>Complexity</th><th title="TER1=Statement, TER2=Branch, TER3=LCSAJ Path">TER1 / TER2 / TER3</th></tr>
 
+<tr class="high"><td><a href="mutation_html/lib/Sub/Private.pm.html" title="View mutation line by line" target="_blank">lib/Sub/Private.pm</a> <a href="https://github.com/nigelhorne/Sub-Private/blob/91a4c833729a77f4f9b447d99730de8593bce05c/lib/Sub/Private.pm" class="icon-link" title="View source on GitHub">&#128269;</a></td><td>3</td><td>3</td><td>0</td><td>0</td><td><span class="coverage-badge badge-good" title="Excellent">100.0%</span></td><td><span class="coverage-badge badge-good" title="Good">29</span></td><td><span class="coverage-badge badge-good" title="Excellent">100.0%</span> / <span class="coverage-badge badge-good" title="Excellent">100.0%</span> / <span class="coverage-badge badge-bad" title="Needs improvement">66.7%</span></td></tr>
 </table>
 
 <h2>Structural Coverage (Approximate)</h2>
 <div class='summary'>
-Statement Coverage: 99.01% (100 / 101)<br>
-Branch Coverage: 96.88% (31 / 32)<br>
+Statement Coverage: 100.00% (101 / 101)<br>
+Branch Coverage: 100.00% (32 / 32)<br>
 <em>Approximate LCSAJ derived from branch and statement coverage.</em>
 </div>
 <h2>Executive Summary</h2>
 <div class='summary'>
-Tests execute 99.01% of the code. No mutation data available yet — trigger the mutation workflow for fault detection analysis.
+Tests execute 100.00% of the code and detect 100.00% of injected faults.
 </div>
 <footer>
 	<p>Project: <a href="https://github.com/nigelhorne/Sub-Private">Sub-Private</a></p>
-	<p><em>Last updated: 2026-06-09 18:23:07 - <a href="https://github.com/nigelhorne/Sub-Private/commit/769538ebf5e53fe74601e52c2207385323219ec0">commit <code>769538e</code></a></em></p>
+	<p><em>Last updated: 2026-06-09 19:53:30 - <a href="https://github.com/nigelhorne/Sub-Private/commit/91a4c833729a77f4f9b447d99730de8593bce05c">commit <code>91a4c83</code></a></em></p>
 	<p style="float: right; font-size: 0.85em; color: #999;">Powered by <a href="https://metacpan.org/dist/App-Test-Generator">App::Test::Generator 0.38</a></p>
 </footer>
 </body>
