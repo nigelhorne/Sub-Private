@@ -85,44 +85,34 @@ for my $locale (@locales) {
 
 	subtest "locale '$locale': stranger access blocked with canonical message" => sub {
 		if($available) {
-		local $ENV{LC_ALL} = $locale;
-		local $ENV{LANG}   = $locale;
+			local $ENV{LC_ALL} = $locale;
+			local $ENV{LANG}   = $locale;
 
-		throws_ok { LC::Stranger->new->probe }
-			$EXPECTED_MSG,
-			"croak message matches under '$locale'";
+			throws_ok { LC::Stranger->new->probe }
+				$EXPECTED_MSG,
+				"croak message matches under '$locale'";
 		} else {
 			diag("locale '$locale' not available on this system");
 		}
 	};
 
 	subtest "locale '$locale': owner access succeeds" => sub {
-		plan tests => 1;
+		if($available) {
+			local $ENV{LC_ALL} = $locale;
+			local $ENV{LANG}   = $locale;
 
-		unless ($available) {
-			skip "locale '$locale' not available on this system", 1;
+			lives_ok { LC::Owner->new->reveal } "owner access lives under '$locale'";
 		}
-
-		local $ENV{LC_ALL} = $locale;
-		local $ENV{LANG}   = $locale;
-
-		lives_ok { LC::Owner->new->reveal }
-			"owner access lives under '$locale'";
 	};
 
 	subtest "locale '$locale': BYPASS=1 allows stranger" => sub {
-		plan tests => 1;
+		if ($available) {
+			local $ENV{LC_ALL}              = $locale;
+			local $ENV{LANG}                = $locale;
+			local $Sub::Private::BYPASS     = 1;
 
-		unless ($available) {
-			skip "locale '$locale' not available on this system", 1;
+			lives_ok { LC::Stranger->new->probe } "BYPASS=1 allows stranger under '$locale'";
 		}
-
-		local $ENV{LC_ALL}              = $locale;
-		local $ENV{LANG}                = $locale;
-		local $Sub::Private::BYPASS     = 1;
-
-		lives_ok { LC::Stranger->new->probe }
-			"BYPASS=1 allows stranger under '$locale'";
 	};
 }
 
