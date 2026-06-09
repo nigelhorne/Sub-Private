@@ -189,34 +189,6 @@ package's stash.
                                                          wrap time.  Define the sub before import()
                                                          runs, or before CHECK fires.
 
-### FORMAL SPECIFICATION
-
-    -- Type abbreviations
-    SubName == seq CHAR      -- non-empty Perl identifier string
-
-    -- Valid identifier predicate
-    valid_id : SubName -> BOOL
-    valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
-
-    -- Pre-condition (declarative form)
-    +-ImportPre-----------------------------------------+
-    | config.mode = 'enforce'                           |
-    | forall n in subs . valid_id(n)                    |
-    | forall n in subs . defined(&{caller + '::' + n})  |
-    +---------------------------------------------------+
-
-    -- Post-condition (pre-CHECK path)
-    +-ImportPost_PreCheck-------------------------------+
-    | @_pending' = @_pending                            |
-    |            union { (caller, n) | n in subs }      |
-    +---------------------------------------------------+
-
-    -- Post-condition (post-CHECK path)
-    +-ImportPost_PostCheck------------------------------+
-    | forall n in subs .                                |
-    |   stash(caller, n) = wrapper_closure(caller, n)   |
-    +---------------------------------------------------+
-
 # KNOWN LIMITATIONS
 
 - `namespace` mode: OO dispatch fails for private subs
@@ -343,6 +315,36 @@ or through the web interface at
 - Search CPAN
 
     [https://search.cpan.org/dist/Sub-Private](https://search.cpan.org/dist/Sub-Private)
+
+## FORMAL SPECIFICATION
+
+### import
+
+    -- Type abbreviations
+    SubName == seq CHAR      -- non-empty Perl identifier string
+
+    -- Valid identifier predicate
+    valid_id : SubName -> BOOL
+    valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
+
+    -- Pre-condition (declarative form)
+    +-ImportPre-----------------------------------------+
+    | config.mode = 'enforce'                           |
+    | forall n in subs . valid_id(n)                    |
+    | forall n in subs . defined(&{caller + '::' + n})  |
+    +---------------------------------------------------+
+
+    -- Post-condition (pre-CHECK path)
+    +-ImportPost_PreCheck-------------------------------+
+    | @_pending' = @_pending                            |
+    |            union { (caller, n) | n in subs }      |
+    +---------------------------------------------------+
+
+    -- Post-condition (post-CHECK path)
+    +-ImportPost_PostCheck------------------------------+
+    | forall n in subs .                                |
+    |   stash(caller, n) = wrapper_closure(caller, n)   |
+    +---------------------------------------------------+
 
 # COPYRIGHT & LICENSE
 

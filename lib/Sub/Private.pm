@@ -304,34 +304,6 @@ package's stash.
                                                          wrap time.  Define the sub before import()
                                                          runs, or before CHECK fires.
 
-=head3 FORMAL SPECIFICATION
-
-    -- Type abbreviations
-    SubName == seq CHAR      -- non-empty Perl identifier string
-
-    -- Valid identifier predicate
-    valid_id : SubName -> BOOL
-    valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
-
-    -- Pre-condition (declarative form)
-    +-ImportPre-----------------------------------------+
-    | config.mode = 'enforce'                           |
-    | forall n in subs . valid_id(n)                    |
-    | forall n in subs . defined(&{caller + '::' + n})  |
-    +---------------------------------------------------+
-
-    -- Post-condition (pre-CHECK path)
-    +-ImportPost_PreCheck-------------------------------+
-    | @_pending' = @_pending                            |
-    |            union { (caller, n) | n in subs }      |
-    +---------------------------------------------------+
-
-    -- Post-condition (post-CHECK path)
-    +-ImportPost_PostCheck------------------------------+
-    | forall n in subs .                                |
-    |   stash(caller, n) = wrapper_closure(caller, n)   |
-    +---------------------------------------------------+
-
 =cut
 
 sub import {
@@ -389,7 +361,6 @@ CHECK {
 # Entry        : $mode -- the value to validate
 # Exit status  : Returns normally for 'namespace' or 'enforce'; croaks
 #                with a descriptive message for any other value.
-# Side effects : none
 sub _assert_known_mode {
 	my ($mode) = @_;
 	return if $mode eq $MODE_NAMESPACE || $mode eq $MODE_ENFORCE;
@@ -456,7 +427,6 @@ sub _wrap {
 #                $sub_name  -- unqualified sub name (for error messages)
 # Exit status  : Returns normally if the immediate non-Sub::Private caller is
 #                the owner package.  Croaks if any other package is found first.
-# Side effects : none
 # Notes        : Unlike Sub::Protected there is NO ->isa check.  Private means
 #                the owner package ONLY; subclasses are blocked.
 #                The stack walk skips Sub::Private frames so the wrapper is
@@ -496,7 +466,6 @@ sub _check_access {
 # Entry        : $method_name -- the guarded method name (for error messages)
 # Exit status  : Returns normally if caller(1) is Sub::Private; croaks
 #                otherwise with a descriptive message.
-# Side effects : none
 # Notes        : caller(1) is the package that called the guarded method,
 #                which in turn called this function.
 sub _assert_private_caller {
@@ -655,6 +624,36 @@ L<https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private>
 L<https://search.cpan.org/dist/Sub-Private>
 
 =back
+
+=head2 FORMAL SPECIFICATION
+
+=head3 import
+
+    -- Type abbreviations
+    SubName == seq CHAR      -- non-empty Perl identifier string
+
+    -- Valid identifier predicate
+    valid_id : SubName -> BOOL
+    valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
+
+    -- Pre-condition (declarative form)
+    +-ImportPre-----------------------------------------+
+    | config.mode = 'enforce'                           |
+    | forall n in subs . valid_id(n)                    |
+    | forall n in subs . defined(&{caller + '::' + n})  |
+    +---------------------------------------------------+
+
+    -- Post-condition (pre-CHECK path)
+    +-ImportPost_PreCheck-------------------------------+
+    | @_pending' = @_pending                            |
+    |            union { (caller, n) | n in subs }      |
+    +---------------------------------------------------+
+
+    -- Post-condition (post-CHECK path)
+    +-ImportPost_PostCheck------------------------------+
+    | forall n in subs .                                |
+    |   stash(caller, n) = wrapper_closure(caller, n)   |
+    +---------------------------------------------------+
 
 =head1 COPYRIGHT & LICENSE
 
