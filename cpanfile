@@ -14,6 +14,7 @@ requires 'Sub::Identify';
 requires 'namespace::clean';
 
 on 'test' => sub {
+	requires 'IPC::System::Simple';
 	requires 'Test::DescribeMe';
 	requires 'Test::Memory::Cycle';
 	requires 'Test::Most';
