@@ -4,13 +4,6 @@
 use strict;
 use warnings;
 
-BEGIN {
-	my ($home) = ($ENV{HOME} =~ /\A(.+)\z/ms);
-	unshift @INC, 'lib',
-		"$home/src/njh/Test-Mockingbird/lib",
-		"$home/src/njh/Test-Returns/lib";
-}
-
 use Test::Most;
 use Scalar::Util qw(reftype);
 use Readonly;
