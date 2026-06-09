@@ -13,6 +13,7 @@ requires 'namespace::clean';
 on 'test' => sub {
 	requires 'IPC::System::Simple';
 	requires 'Moo';
+	requires 'Moose';
 	requires 'Test::DescribeMe';
 	requires 'Test::Memory::Cycle';
 	requires 'Test::Most';
