@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 # VERSION
 
-Version 0.05
+Version 0.04
 
 # SYNOPSIS
 
@@ -253,9 +253,12 @@ package's stash.
 
 # SEE ALSO
 
-[namespace::clean](https://metacpan.org/pod/namespace%3A%3Aclean),
-[Sub::Protected](https://metacpan.org/pod/Sub%3A%3AProtected) -- sister module enforcing protected (owner + subclass)
-rather than strictly private access.
+- [Test Dashboard](https://nigelhorne.github.io/Sub-Private/coverage/)
+- [Sub::Protected](https://metacpan.org/pod/Sub%3A%3AProtected)
+
+    Sister module enforcing protected (owner + subclass) rather than strictly private access
+
+- [namespace::clean](https://metacpan.org/pod/namespace%3A%3Aclean)
 
 ## FORMAL SPECIFICATION
 

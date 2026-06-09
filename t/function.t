@@ -453,7 +453,34 @@ subtest '_process_one(): guard fires even with HARNESS_ACTIVE=1 when harness_byp
 };
 
 # ===================================================================
-# SECTION 8: spy verification (if Test::Mockingbird available)
+# SECTION 8: _assert_known_mode()
+# ===================================================================
+
+subtest '_assert_known_mode(): accepts namespace' => sub {
+	plan tests => 1;
+	lives_ok { Sub::Private::_assert_known_mode('namespace') }
+		'_assert_known_mode() lives for "namespace"';
+};
+
+subtest '_assert_known_mode(): accepts enforce' => sub {
+	plan tests => 1;
+	lives_ok { Sub::Private::_assert_known_mode('enforce') }
+		'_assert_known_mode() lives for "enforce"';
+};
+
+subtest '_assert_known_mode(): croaks for unknown mode' => sub {
+	plan tests => 2;
+	throws_ok { Sub::Private::_assert_known_mode('typo') }
+		qr/unknown mode 'typo'.*use 'namespace' or 'enforce'/s,
+		'_assert_known_mode() croaks with descriptive message for unknown value';
+
+	throws_ok { Sub::Private::_assert_known_mode(q{}) }
+		qr/unknown mode/,
+		'_assert_known_mode() croaks for empty string';
+};
+
+# ===================================================================
+# SECTION 9: spy verification (if Test::Mockingbird available)
 # ===================================================================
 
 if ($have_mockingbird) {

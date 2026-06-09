@@ -556,9 +556,17 @@ L<Sub::Identify>.
 
 =head1 SEE ALSO
 
-L<namespace::clean>,
-L<Sub::Protected> -- sister module enforcing protected (owner + subclass)
-rather than strictly private access.
+=over 4
+
+=item * L<Test Dashboard|https://nigelhorne.github.io/Sub-Private/coverage/>
+
+=item * L<Sub::Protected>
+
+Sister module enforcing protected (owner + subclass) rather than strictly private access
+
+=item * L<namespace::clean>
+
+=back
 
 =head2 FORMAL SPECIFICATION
 

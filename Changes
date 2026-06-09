@@ -10,6 +10,7 @@ Revision history for Sub-Private
 	Updated POD: SYNOPSIS, both modes, CONFIGURATION, BYPASS, MESSAGES, FORMAL SPEC
 	Fixed http => https in SUPPORT links
 	Added SEE ALSO entry for Sub::Protected
+	Added Test Dashboard
 
 	[ Testing ]
 	Added test suite: basic.t, enforce.t, bypass.t, declarative.t, edge_cases.t,
