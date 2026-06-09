@@ -78,7 +78,6 @@ my @locales = (
 my $original_locale = setlocale(LC_ALL);
 
 for my $locale (@locales) {
-
 	# Probe whether the locale is available on this system.
 	my $available = setlocale(LC_ALL, $locale) ? 1 : 0;
 	setlocale(LC_ALL, $original_locale);   # restore immediately
@@ -92,7 +91,7 @@ for my $locale (@locales) {
 				$EXPECTED_MSG,
 				"croak message matches under '$locale'";
 		} else {
-			diag("locale '$locale' not available on this system");
+			pass "locale '$locale' not available on this system";
 		}
 	};
 
@@ -102,6 +101,8 @@ for my $locale (@locales) {
 			local $ENV{LANG}   = $locale;
 
 			lives_ok { LC::Owner->new->reveal } "owner access lives under '$locale'";
+		} else {
+			ok(1);
 		}
 	};
 
@@ -112,6 +113,8 @@ for my $locale (@locales) {
 			local $Sub::Private::BYPASS     = 1;
 
 			lives_ok { LC::Stranger->new->probe } "BYPASS=1 allows stranger under '$locale'";
+		} else {
+			ok(1);
 		}
 	};
 }
