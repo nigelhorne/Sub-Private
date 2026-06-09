@@ -84,18 +84,16 @@ for my $locale (@locales) {
 	setlocale(LC_ALL, $original_locale);   # restore immediately
 
 	subtest "locale '$locale': stranger access blocked with canonical message" => sub {
-		plan tests => 1;
-
-		unless ($available) {
-			skip "locale '$locale' not available on this system", 1;
-		}
-
+		if($available) {
 		local $ENV{LC_ALL} = $locale;
 		local $ENV{LANG}   = $locale;
 
 		throws_ok { LC::Stranger->new->probe }
 			$EXPECTED_MSG,
 			"croak message matches under '$locale'";
+		} else {
+			diag("locale '$locale' not available on this system");
+		}
 	};
 
 	subtest "locale '$locale': owner access succeeds" => sub {
@@ -128,4 +126,4 @@ for my $locale (@locales) {
 	};
 }
 
-done_testing;
+done_testing();
