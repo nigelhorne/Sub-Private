@@ -18,6 +18,7 @@ t/edge_cases.t
 t/enforce.t
 t/eof.t
 t/eol.t
+t/extended_tests.t
 t/Foo.pm
 t/function.t
 t/integration.t
