@@ -13,7 +13,7 @@ if ($^O eq 'darwin') {
 
 WriteMakefile(
 	NAME          => 'Sub::Private',
-	AUTHOR        => q{Nigel Horne <njh@bandsman.co.uk>},
+	AUTHOR        => q{Nigel Horne <njh@nigelhorne.com>},
 	VERSION_FROM  => 'lib/Sub/Private.pm',
 	ABSTRACT_FROM => 'lib/Sub/Private.pm',
 	((defined($ExtUtils::MakeMaker::VERSION) &&
@@ -30,8 +30,8 @@ WriteMakefile(
 		'Return::Set'              => 0,
 		'Scalar::Util'             => 0,
 		'Sub::Identify'            => 0,
-	},
-	TEST_REQUIRES => {
+	}, TEST_REQUIRES => {
+		'IPC::System::Simple' => 0,
 		'Test::DescribeMe'    => 0,
 		'Test::Memory::Cycle' => 0,
 		'Test::Most'          => 0,
