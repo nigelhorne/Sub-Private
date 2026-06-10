@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 # VERSION
 
-Version 0.04
+Version 0.05
 
 # SYNOPSIS
 
