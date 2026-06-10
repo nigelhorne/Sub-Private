@@ -835,137 +835,141 @@ Approximate LCSAJ segments: 33<br>
 </span><span class="">  543: 
 </span><span class="">  544: Sister module enforcing protected (owner + subclass) rather than strictly private access
 </span><span class="">  545: 
-</span><span class="">  546: =item * L&lt;namespace::clean&gt;
+</span><span class="">  546: =item * L&lt;Sub::Abstract&gt;
 </span><span class="">  547: 
-</span><span class="">  548: =back
+</span><span class="">  548: Sister module enforcing abstract (virtual) methods
 </span><span class="">  549: 
-</span><span class="">  550: =head2 FORMAL SPECIFICATION
+</span><span class="">  550: =item * L&lt;namespace::clean&gt;
 </span><span class="">  551: 
-</span><span class="">  552: The following Z-notation schemas formally specify the C&lt;CheckAccess&gt;
-</span><span class="">  553: operation.
-</span><span class="">  554: 
-</span><span class="">  555:     -- Type abbreviations
-</span><span class="">  556:     Package  == seq CHAR     -- a non-empty Perl package name string
-</span><span class="">  557:     SubName  == seq CHAR     -- a Perl identifier string
+</span><span class="">  552: =back
+</span><span class="">  553: 
+</span><span class="">  554: =head1 FORMAL SPECIFICATION
+</span><span class="">  555: 
+</span><span class="">  556: The following Z-notation schemas formally specify the C&lt;CheckAccess&gt;
+</span><span class="">  557: operation.
 </span><span class="">  558: 
-</span><span class="">  559:     -- Private-access predicate (strictly owner only -- no isa expansion)
-</span><span class="">  560:     permitted : Package x Package -&gt; BOOL
-</span><span class="">  561:     forall caller, owner : Package .
-</span><span class="">  562:         permitted(caller, owner) &lt;=&gt; caller = owner
-</span><span class="">  563: 
-</span><span class="">  564:     -- System state
-</span><span class="">  565:     +-Registry-------------------------------------------+
-</span><span class="">  566:     | private   : P (Package x SubName)                  |
-</span><span class="">  567:     | bypass    : BOOL                                    |
-</span><span class="">  568:     | config    : { mode : seq CHAR,                      |
-</span><span class="">  569:     |               harness_bypass : BOOL }               |
-</span><span class="">  570:     +----------------------------------------------------+
-</span><span class="">  571: 
-</span><span class="">  572:     -- Initial state
-</span><span class="">  573:     +-InitRegistry---------------------------------------+
-</span><span class="">  574:     | Registry                                           |
-</span><span class="">  575:     |----------------------------------------------------|
-</span><span class="">  576:     | private   = {}                                     |
-</span><span class="">  577:     | bypass    = false                                  |
-</span><span class="">  578:     | config    = { mode |-&gt; &#39;namespace&#39;,                 |
-</span><span class="">  579:     |               harness_bypass |-&gt; true }             |
-</span><span class="">  580:     +----------------------------------------------------+
-</span><span class="">  581: 
-</span><span class="">  582:     -- Bypass predicate
-</span><span class="">  583:     bypass_active(R) &lt;=&gt;
-</span><span class="">  584:         R.bypass or (R.config.harness_bypass and HARNESS_ACTIVE)
+</span><span class="">  559:     -- Type abbreviations
+</span><span class="">  560:     Package  == seq CHAR     -- a non-empty Perl package name string
+</span><span class="">  561:     SubName  == seq CHAR     -- a Perl identifier string
+</span><span class="">  562: 
+</span><span class="">  563:     -- Private-access predicate (strictly owner only -- no isa expansion)
+</span><span class="">  564:     permitted : Package x Package -&gt; BOOL
+</span><span class="">  565:     forall caller, owner : Package .
+</span><span class="">  566:         permitted(caller, owner) &lt;=&gt; caller = owner
+</span><span class="">  567: 
+</span><span class="">  568:     -- System state
+</span><span class="">  569:     +-Registry-------------------------------------------+
+</span><span class="">  570:     | private   : P (Package x SubName)                  |
+</span><span class="">  571:     | bypass    : BOOL                                    |
+</span><span class="">  572:     | config    : { mode : seq CHAR,                      |
+</span><span class="">  573:     |               harness_bypass : BOOL }               |
+</span><span class="">  574:     +----------------------------------------------------+
+</span><span class="">  575: 
+</span><span class="">  576:     -- Initial state
+</span><span class="">  577:     +-InitRegistry---------------------------------------+
+</span><span class="">  578:     | Registry                                           |
+</span><span class="">  579:     |----------------------------------------------------|
+</span><span class="">  580:     | private   = {}                                     |
+</span><span class="">  581:     | bypass    = false                                  |
+</span><span class="">  582:     | config    = { mode |-&gt; &#39;namespace&#39;,                 |
+</span><span class="">  583:     |               harness_bypass |-&gt; true }             |
+</span><span class="">  584:     +----------------------------------------------------+
 </span><span class="">  585: 
-</span><span class="">  586:     -- Access check: no state change
-</span><span class="">  587:     +-CheckAccess----------------------------------------+
-</span><span class="">  588:     | Xi-Registry                                        |
-</span><span class="">  589:     | caller? : Package                                  |
-</span><span class="">  590:     | owner?  : Package                                  |
-</span><span class="">  591:     | name?   : SubName                                  |
-</span><span class="">  592:     | ok!     : BOOL                                     |
-</span><span class="">  593:     |----------------------------------------------------|
-</span><span class="">  594:     | (owner?, name?) in private                         |
-</span><span class="">  595:     | ok! &lt;=&gt; bypass_active or permitted(caller?, owner?)|
-</span><span class="">  596:     +----------------------------------------------------+
-</span><span class="">  597: 
-</span><span class="">  598:     -- Violation (croak case):
-</span><span class="">  599:     --   not ok! =&gt;
-</span><span class="">  600:     --   croak(&quot;name?()&quot; ++ &quot; is a private subroutine of &quot; ++ owner?
-</span><span class="">  601:     --         ++ &quot; and cannot be called from &quot; ++ caller?)
-</span><span class="">  602: 
-</span><span class="">  603:     -- Key difference from Sub::Protected:
-</span><span class="">  604:     --   permitted(caller, owner) &lt;=&gt; caller = owner   (identity only)
-</span><span class="">  605:     -- vs Sub::Protected:
-</span><span class="">  606:     --   permitted(caller, owner) &lt;=&gt; owner in anc(caller)   (ISA chain)
-</span><span class="">  607: 
-</span><span class="">  608: =head1 AUTHOR
-</span><span class="">  609: 
-</span><span class="">  610: Original Author:
-</span><span class="">  611: Peter Makholm, C&lt;&lt; &lt;peter at makholm.net&gt; &gt;&gt;
-</span><span class="">  612: 
-</span><span class="">  613: Current maintainer:
-</span><span class="">  614: Nigel Horne, C&lt;&lt; &lt;njh at nigelhorne.com&gt; &gt;&gt;
-</span><span class="">  615: 
-</span><span class="">  616: =head1 BUGS
-</span><span class="">  617: 
-</span><span class="">  618: Please report any bugs or feature requests to C&lt;bug-sub-private at rt.cpan.org&gt;,
-</span><span class="">  619: or through the web interface at
-</span><span class="">  620: L&lt;https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private&gt;.
+</span><span class="">  586:     -- Bypass predicate
+</span><span class="">  587:     bypass_active(R) &lt;=&gt;
+</span><span class="">  588:         R.bypass or (R.config.harness_bypass and HARNESS_ACTIVE)
+</span><span class="">  589: 
+</span><span class="">  590:     -- Access check: no state change
+</span><span class="">  591:     +-CheckAccess----------------------------------------+
+</span><span class="">  592:     | Xi-Registry                                        |
+</span><span class="">  593:     | caller? : Package                                  |
+</span><span class="">  594:     | owner?  : Package                                  |
+</span><span class="">  595:     | name?   : SubName                                  |
+</span><span class="">  596:     | ok!     : BOOL                                     |
+</span><span class="">  597:     |----------------------------------------------------|
+</span><span class="">  598:     | (owner?, name?) in private                         |
+</span><span class="">  599:     | ok! &lt;=&gt; bypass_active or permitted(caller?, owner?)|
+</span><span class="">  600:     +----------------------------------------------------+
+</span><span class="">  601: 
+</span><span class="">  602:     -- Violation (croak case):
+</span><span class="">  603:     --   not ok! =&gt;
+</span><span class="">  604:     --   croak(&quot;name?()&quot; ++ &quot; is a private subroutine of &quot; ++ owner?
+</span><span class="">  605:     --         ++ &quot; and cannot be called from &quot; ++ caller?)
+</span><span class="">  606: 
+</span><span class="">  607:     -- Key difference from Sub::Protected:
+</span><span class="">  608:     --   permitted(caller, owner) &lt;=&gt; caller = owner   (identity only)
+</span><span class="">  609:     -- vs Sub::Protected:
+</span><span class="">  610:     --   permitted(caller, owner) &lt;=&gt; owner in anc(caller)   (ISA chain)
+</span><span class="">  611: 
+</span><span class="">  612: =head1 AUTHOR
+</span><span class="">  613: 
+</span><span class="">  614: Original Author:
+</span><span class="">  615: Peter Makholm, C&lt;&lt; &lt;peter at makholm.net&gt; &gt;&gt;
+</span><span class="">  616: 
+</span><span class="">  617: Current maintainer:
+</span><span class="">  618: Nigel Horne, C&lt;&lt; &lt;njh at nigelhorne.com&gt; &gt;&gt;
+</span><span class="">  619: 
+</span><span class="">  620: =head1 BUGS
 </span><span class="">  621: 
-</span><span class="">  622: =head1 SUPPORT
-</span><span class="">  623: 
-</span><span class="">  624:     perldoc Sub::Private
+</span><span class="">  622: Please report any bugs or feature requests to C&lt;bug-sub-private at rt.cpan.org&gt;,
+</span><span class="">  623: or through the web interface at
+</span><span class="">  624: L&lt;https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private&gt;.
 </span><span class="">  625: 
-</span><span class="">  626: =over 4
+</span><span class="">  626: =head1 SUPPORT
 </span><span class="">  627: 
-</span><span class="">  628: =item * RT: CPAN&#39;s request tracker
+</span><span class="">  628:     perldoc Sub::Private
 </span><span class="">  629: 
-</span><span class="">  630: L&lt;https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private&gt;
+</span><span class="">  630: =over 4
 </span><span class="">  631: 
-</span><span class="">  632: =item * Search CPAN
+</span><span class="">  632: =item * RT: CPAN&#39;s request tracker
 </span><span class="">  633: 
-</span><span class="">  634: L&lt;https://search.cpan.org/dist/Sub-Private&gt;
+</span><span class="">  634: L&lt;https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private&gt;
 </span><span class="">  635: 
-</span><span class="">  636: =back
+</span><span class="">  636: =item * Search CPAN
 </span><span class="">  637: 
-</span><span class="">  638: =head2 FORMAL SPECIFICATION
+</span><span class="">  638: L&lt;https://search.cpan.org/dist/Sub-Private&gt;
 </span><span class="">  639: 
-</span><span class="">  640: =head3 import
+</span><span class="">  640: =back
 </span><span class="">  641: 
-</span><span class="">  642:     -- Type abbreviations
-</span><span class="">  643:     SubName == seq CHAR      -- non-empty Perl identifier string
-</span><span class="">  644: 
-</span><span class="">  645:     -- Valid identifier predicate
-</span><span class="">  646:     valid_id : SubName -&gt; BOOL
-</span><span class="">  647:     valid_id(n) &lt;=&gt; n =~ /\A[_a-zA-Z]\w*\z/
+</span><span class="">  642: =head2 FORMAL SPECIFICATION
+</span><span class="">  643: 
+</span><span class="">  644: =head3 import
+</span><span class="">  645: 
+</span><span class="">  646:     -- Type abbreviations
+</span><span class="">  647:     SubName == seq CHAR      -- non-empty Perl identifier string
 </span><span class="">  648: 
-</span><span class="">  649:     -- Pre-condition (declarative form)
-</span><span class="">  650:     +-ImportPre-----------------------------------------+
-</span><span class="">  651:     | config.mode = &#39;enforce&#39;                           |
-</span><span class="">  652:     | forall n in subs . valid_id(n)                    |
-</span><span class="">  653:     | forall n in subs . defined(&amp;{caller + &#39;::&#39; + n})  |
-</span><span class="">  654:     +---------------------------------------------------+
-</span><span class="">  655: 
-</span><span class="">  656:     -- Post-condition (pre-CHECK path)
-</span><span class="">  657:     +-ImportPost_PreCheck-------------------------------+
-</span><span class="">  658:     | @_pending&#39; = @_pending                            |
-</span><span class="">  659:     |            union { (caller, n) | n in subs }      |
-</span><span class="">  660:     +---------------------------------------------------+
-</span><span class="">  661: 
-</span><span class="">  662:     -- Post-condition (post-CHECK path)
-</span><span class="">  663:     +-ImportPost_PostCheck------------------------------+
-</span><span class="">  664:     | forall n in subs .                                |
-</span><span class="">  665:     |   stash(caller, n) = wrapper_closure(caller, n)   |
-</span><span class="">  666:     +---------------------------------------------------+
-</span><span class="">  667: 
-</span><span class="">  668: =head1 COPYRIGHT &amp; LICENSE
-</span><span class="">  669: 
-</span><span class="">  670: Copyright 2009 Peter Makholm, all rights reserved.
-</span><span class="">  671: Portions copyright 2024-2026 Nigel Horne.
-</span><span class="">  672: 
-</span><span class="">  673: This program is free software; you can redistribute it and/or modify it
-</span><span class="">  674: under the same terms as Perl itself.
-</span><span class="">  675: 
-</span><span class="">  676: =cut
+</span><span class="">  649:     -- Valid identifier predicate
+</span><span class="">  650:     valid_id : SubName -&gt; BOOL
+</span><span class="">  651:     valid_id(n) &lt;=&gt; n =~ /\A[_a-zA-Z]\w*\z/
+</span><span class="">  652: 
+</span><span class="">  653:     -- Pre-condition (declarative form)
+</span><span class="">  654:     +-ImportPre-----------------------------------------+
+</span><span class="">  655:     | config.mode = &#39;enforce&#39;                           |
+</span><span class="">  656:     | forall n in subs . valid_id(n)                    |
+</span><span class="">  657:     | forall n in subs . defined(&amp;{caller + &#39;::&#39; + n})  |
+</span><span class="">  658:     +---------------------------------------------------+
+</span><span class="">  659: 
+</span><span class="">  660:     -- Post-condition (pre-CHECK path)
+</span><span class="">  661:     +-ImportPost_PreCheck-------------------------------+
+</span><span class="">  662:     | @_pending&#39; = @_pending                            |
+</span><span class="">  663:     |            union { (caller, n) | n in subs }      |
+</span><span class="">  664:     +---------------------------------------------------+
+</span><span class="">  665: 
+</span><span class="">  666:     -- Post-condition (post-CHECK path)
+</span><span class="">  667:     +-ImportPost_PostCheck------------------------------+
+</span><span class="">  668:     | forall n in subs .                                |
+</span><span class="">  669:     |   stash(caller, n) = wrapper_closure(caller, n)   |
+</span><span class="">  670:     +---------------------------------------------------+
+</span><span class="">  671: 
+</span><span class="">  672: =head1 COPYRIGHT &amp; LICENSE
+</span><span class="">  673: 
+</span><span class="">  674: Copyright 2009 Peter Makholm, all rights reserved.
+</span><span class="">  675: Portions copyright 2024-2026 Nigel Horne.
+</span><span class="">  676: 
+</span><span class="">  677: This program is free software; you can redistribute it and/or modify it
+</span><span class="">  678: under the same terms as Perl itself.
+</span><span class="">  679: 
+</span><span class="">  680: =cut
 </span></pre>
 
 <script>
