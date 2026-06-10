@@ -543,11 +543,15 @@ L<Sub::Identify>.
 
 Sister module enforcing protected (owner + subclass) rather than strictly private access
 
+=item * L<Sub::Abstract>
+
+Sister module enforcing abstract (virtual) methods
+
 =item * L<namespace::clean>
 
 =back
 
-=head2 FORMAL SPECIFICATION
+=head1 FORMAL SPECIFICATION
 
 The following Z-notation schemas formally specify the C<CheckAccess>
 operation.

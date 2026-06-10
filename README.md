@@ -240,9 +240,13 @@ package's stash.
 
     Sister module enforcing protected (owner + subclass) rather than strictly private access
 
+- [Sub::Abstract](https://metacpan.org/pod/Sub%3A%3AAbstract)
+
+    Sister module enforcing abstract (virtual) methods
+
 - [namespace::clean](https://metacpan.org/pod/namespace%3A%3Aclean)
 
-## FORMAL SPECIFICATION
+# FORMAL SPECIFICATION
 
 The following Z-notation schemas formally specify the `CheckAccess`
 operation.
