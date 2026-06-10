@@ -77,28 +77,6 @@ The `HARNESS_ACTIVE` bypass can be disabled:
 
     bar() is a private subroutine of Foo and cannot be called from Bar
 
-# PUBLIC VARIABLES
-
-## `$BYPASS`
-
-Set to a true value to disable all access checks (enforce mode only).
-Use `local` in tests; see ["Bypass for testing"](#bypass-for-testing).
-
-## `%config`
-
-Module-level configuration hash.  Supported keys:
-
-- `mode`
-
-    `'namespace'` (default) or `'enforce'`.  Must be set in a `BEGIN`
-    block before `use Sub::Private` to take effect at `CHECK` time.
-
-- `harness_bypass`
-
-    When true (default), access checks are skipped whenever
-    `$ENV{HARNESS_ACTIVE}` is set.  Set to 0 to test enforcement under
-    `prove`.
-
 # PUBLIC INTERFACE
 
 ## import
@@ -188,6 +166,28 @@ package's stash.
     "Sub::Private: PKG::NAME is not defined"             The named sub was not found in the stash at
                                                          wrap time.  Define the sub before import()
                                                          runs, or before CHECK fires.
+
+# PUBLIC VARIABLES
+
+## `$BYPASS`
+
+Set to a true value to disable all access checks (enforce mode only).
+Use `local` in tests; see ["Bypass for testing"](#bypass-for-testing).
+
+## `%config`
+
+Module-level configuration hash.  Supported keys:
+
+- `mode`
+
+    `'namespace'` (default) or `'enforce'`.  Must be set in a `BEGIN`
+    block before `use Sub::Private` to take effect at `CHECK` time.
+
+- `harness_bypass`
+
+    When true (default), access checks are skipped whenever
+    `$ENV{HARNESS_ACTIVE}` is set.  Set to 0 to test enforcement under
+    `prove`.
 
 # KNOWN LIMITATIONS
 

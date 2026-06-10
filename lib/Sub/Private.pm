@@ -130,32 +130,6 @@ The C<HARNESS_ACTIVE> bypass can be disabled:
 
     bar() is a private subroutine of Foo and cannot be called from Bar
 
-=head1 PUBLIC VARIABLES
-
-=head2 C<$BYPASS>
-
-Set to a true value to disable all access checks (enforce mode only).
-Use C<local> in tests; see L</Bypass for testing>.
-
-=head2 C<%config>
-
-Module-level configuration hash.  Supported keys:
-
-=over 4
-
-=item C<mode>
-
-C<'namespace'> (default) or C<'enforce'>.  Must be set in a C<BEGIN>
-block before C<use Sub::Private> to take effect at C<CHECK> time.
-
-=item C<harness_bypass>
-
-When true (default), access checks are skipped whenever
-C<$ENV{HARNESS_ACTIVE}> is set.  Set to 0 to test enforcement under
-C<prove>.
-
-=back
-
 =cut
 
 # Public bypass flag.  Use C<local $Sub::Private::BYPASS = 1> in test code.
@@ -484,6 +458,32 @@ sub _assert_private_caller {
 1;
 
 __END__
+
+=head1 PUBLIC VARIABLES
+
+=head2 C<$BYPASS>
+
+Set to a true value to disable all access checks (enforce mode only).
+Use C<local> in tests; see L</Bypass for testing>.
+
+=head2 C<%config>
+
+Module-level configuration hash.  Supported keys:
+
+=over 4
+
+=item C<mode>
+
+C<'namespace'> (default) or C<'enforce'>.  Must be set in a C<BEGIN>
+block before C<use Sub::Private> to take effect at C<CHECK> time.
+
+=item C<harness_bypass>
+
+When true (default), access checks are skipped whenever
+C<$ENV{HARNESS_ACTIVE}> is set.  Set to 0 to test enforcement under
+C<prove>.
+
+=back
 
 =head1 KNOWN LIMITATIONS
 
