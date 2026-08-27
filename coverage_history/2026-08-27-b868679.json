@@ -1,0 +1,435 @@
+{
+   "runs" : [
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806352.87778,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "-e",
+         "start" : 1787806342.58725,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806342.73517,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "-e",
+         "start" : 1787806342.73501,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806343.04154,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/00-load.t",
+         "start" : 1787806343.04018,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806343.3856,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/01-private.t",
+         "start" : 1787806343.38387,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806343.74865,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/basic.t",
+         "start" : 1787806343.74666,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806344.11305,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/bypass.t",
+         "start" : 1787806344.10968,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806344.3982,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/critic.t",
+         "start" : 1787806344.39787,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806344.71967,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/declarative.t",
+         "start" : 1787806344.71283,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806345.15606,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/edge_cases.t",
+         "start" : 1787806345.08582,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806345.58313,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/enforce.t",
+         "start" : 1787806345.57966,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806345.87279,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/eof.t",
+         "start" : 1787806345.87245,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806346.1114,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/eol.t",
+         "start" : 1787806346.11104,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806346.46939,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/extended_tests.t",
+         "start" : 1787806346.42953,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806346.95693,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/function.t",
+         "start" : 1787806346.87846,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806347.70485,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/integration.t",
+         "start" : 1787806347.6366,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806348.09638,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/links.t",
+         "start" : 1787806348.09602,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806348.42331,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/locales.t",
+         "start" : 1787806348.41059,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806348.72301,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/manifest.t",
+         "start" : 1787806348.7221,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806348.9817,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/metrics.t",
+         "start" : 1787806348.98078,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806349.2308,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/no404s.t",
+         "start" : 1787806349.23046,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806349.4982,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/noopentickets.t",
+         "start" : 1787806349.49629,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806349.75147,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/noplan.t",
+         "start" : 1787806349.7505,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806350.03188,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/pod-cm.t",
+         "start" : 1787806350.03084,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806350.27872,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/pod-coverage.t",
+         "start" : 1787806350.27837,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806350.51803,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/pod-synopsis.t",
+         "start" : 1787806350.51768,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806350.76777,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/pod.t",
+         "start" : 1787806350.76687,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806351.04217,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/port.t",
+         "start" : 1787806351.0418,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806351.29799,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/snippets.t",
+         "start" : 1787806351.29709,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806351.57341,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/spelling.t",
+         "start" : 1787806351.57251,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806351.84879,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/strict.t",
+         "start" : 1787806351.84788,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806352.23401,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/unit.t",
+         "start" : 1787806352.17477,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806352.58691,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/unused.t",
+         "start" : 1787806352.58601,
+         "version" : "0.05"
+      },
+      {
+         "OS" : "linux",
+         "abstract" : "Private subroutines and methods",
+         "dir" : "/home/runner/work/Sub-Private/Sub-Private",
+         "finish" : 1787806352.83642,
+         "name" : "Sub-Private",
+         "perl" : "5.40.4",
+         "run" : "t/vars.t",
+         "start" : 1787806352.83606,
+         "version" : "0.05"
+      }
+   ],
+   "summary" : {
+      "Total" : {
+         "branch" : {
+            "covered" : 32,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 32,
+            "uncoverable" : 0
+         },
+         "condition" : {
+            "covered" : 23,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 23,
+            "uncoverable" : 0
+         },
+         "statement" : {
+            "covered" : 101,
+            "percentage" : 100,
+            "total" : 101
+         },
+         "subroutine" : {
+            "covered" : 24,
+            "percentage" : 100,
+            "total" : 24
+         },
+         "total" : {
+            "covered" : 180,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 180,
+            "uncoverable" : 0
+         }
+      },
+      "blib/lib/Sub/Private.pm" : {
+         "branch" : {
+            "covered" : 32,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 32,
+            "uncoverable" : 0
+         },
+         "condition" : {
+            "covered" : 23,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 23,
+            "uncoverable" : 0
+         },
+         "statement" : {
+            "covered" : 101,
+            "percentage" : 100,
+            "total" : 101
+         },
+         "subroutine" : {
+            "covered" : 24,
+            "percentage" : 100,
+            "total" : 24
+         },
+         "total" : {
+            "covered" : 180,
+            "error" : 0,
+            "percentage" : 100,
+            "total" : 180,
+            "uncoverable" : 0
+         }
+      }
+   }
+}
