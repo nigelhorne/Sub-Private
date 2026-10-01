@@ -1,3 +1,110 @@
+# TODO: protect subs when this module is loaded after CHECK (run-time require)
+# ===========================================================================
+#
+# Problem
+# -------
+# When this module and the package that uses it are loaded at run time
+# (require, a plugin loader, string eval), the protected subs are NOT
+# wrapped: anyone can call them.  Perl also warns:
+#	Too late to run CHECK block at lib/Sub/Private.pm line NNN.
+# This contradicts the POD, which says that after CHECK "wrapping is
+# applied immediately".  Both forms are affected: the :Private attribute and
+# "use Sub::Private qw(...)".  Loading at compile time (use, or require
+# inside BEGIN) works correctly and is unaffected by the changes below.
+#
+# Reproduce (Foo.pm declares "sub _x :Private { 1 }" and a public new()):
+#	perl -Ilib -e 'require Foo; print eval { Foo->new->_x; 1 } ? "LEAK\n" : "ok\n"'
+# prints LEAK.
+#
+# Cause
+# -----
+# 1. "my $_post_check = 0;" is only set to 1 by this module's own CHECK
+#    block.  If this module is first loaded after CHECK, that block never
+#    runs, so import() queues every sub on @_pending forever.
+# 2. The attribute handler is ATTR(CODE,CHECK).  Attribute::Handlers runs
+#    CHECK-phase handlers from a CHECK block, which also never runs after
+#    CHECK, so the handler is never called.
+#
+# Proposed change
+# ---------------
+# a. Start the flag from the global phase:
+#	my $_post_check = (defined(${^GLOBAL_PHASE}) && ${^GLOBAL_PHASE} ne 'START') ? 1 : 0;
+#    ${^GLOBAL_PHASE} exists from Perl 5.14.  On older Perls it is undef,
+#    so the flag starts at 0 and behaviour is exactly as today.
+#
+# b. Wrap the CHECK block so loading after CHECK does not warn:
+#	{
+#		no warnings 'void';	# "Too late to run CHECK block"
+#		CHECK { ... unchanged ... }
+#	}
+#
+# c. Also run the attribute handler in the BEGIN phase.  Before CHECK, do
+#    nothing (the CHECK-phase call does the work, as today).  After CHECK,
+#    the sub is still being compiled and may have no name yet, so defer
+#    the wrapping to the end of the file being compiled:
+#
+#	sub UNIVERSAL::Private :ATTR(CODE,BEGIN,CHECK) {
+#		my ($package, $symbol, $referent, $attr, $data, $phase) = @_;
+#		if($phase eq 'BEGIN') {
+#			return unless($_post_check);	# CHECK will do it
+#			require B::Hooks::EndOfScope;
+#			B::Hooks::EndOfScope::on_scope_end(sub {
+#				my ($pkg, $name) = get_code_info($referent);
+#				no strict 'refs';
+#				UNIVERSAL::Private($pkg, \*{"${pkg}::$name"}, $referent, $attr, $data, 'CHECK');
+#			});
+#			return;
+#		}
+#		... the existing CHECK-phase body, unchanged ...
+#	}
+#
+#    on_scope_end() works here because a BEGIN-phase handler runs while the
+#    user's file is being compiled.  (The existing comment that it "does
+#    NOT work from a CHECK-phase callback" is about the CHECK phase only.)
+#
+#    Dependencies: B::Hooks::EndOfScope is already installed with
+#    namespace::clean, and Sub::Identify is already used; list
+#    B::Hooks::EndOfScope in Makefile.PL's PREREQ_PM explicitly.
+#
+# Verified
+# --------
+# A patched copy (changes a-c) was tested on 2026-10-01:
+#	* Private attribute and declarative forms, loaded at run time and at
+#	  compile time: subs blocked from outside, callable from inside, no
+#	  warnings.
+#	* Namespace mode (attribute form) at run time: the sub is removed
+#	  from method lookup and still callable directly from inside.
+#	* This distribution's own test suite passes unchanged.
+#
+# Tests to add
+# ------------
+#	* A test module using the attribute form, loaded with require at run
+#	  time: calls from outside croak with the usual message; calls from
+#	  inside work.
+#	* The same for the declarative form, with import() called at the end
+#	  of the module file, after the subs are defined.
+#	* Loading at run time emits no warnings (Test::Warnings or
+#	  $SIG{__WARN__}).
+#	* Run these in a child process (or with HARNESS_ACTIVE deleted and
+#	  $BYPASS false), since the harness bypass would hide the leak.
+#
+# POD to update
+# -------------
+#	* import(): "If CHECK has already fired ... wrapping is applied
+#	  immediately" becomes true; say that this needs Perl 5.14 (older Perls
+#	  must load the module at compile time).
+#	* Add to LIMITATIONS: on Perl < 5.14, loading at run time leaves subs
+#	  unprotected.
+#
+# Who needs this
+# --------------
+# App::Syslogd (github.com/nigelhorne/syslogd) works around both causes in
+# lib/App/Syslogd.pm: it uses the declarative form at the end of the file
+# and, at run time, calls this module's _process_one() with $BYPASS set.
+# Once a fixed version is released, that workaround can be removed and
+# App::Syslogd's Makefile.PL can require the fixed version.
+# ===========================================================================
+
 package Sub::Private;
 
 # Minimum Perl version: 5.8 (Attribute::Handlers became core in 5.8)
