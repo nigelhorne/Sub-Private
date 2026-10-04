@@ -25,22 +25,25 @@ https://pjcj.net
 <div><br/></div>
 <table>
 <tr><th>line</th><th>%</th><th colspan="2">coverage</th><th>branch</th></tr>
-<tr><td class="h"><a id="L272">272</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($config{$KEY_MODE} eq $MODE_ENFORCE) { }</td></tr>
-<tr><td class="h"><a id="L394">394</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless @subs</td></tr>
-<tr><td class="h"><a id="L398">398</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $config{$KEY_MODE} ne $MODE_ENFORCE</td></tr>
-<tr><td class="h"><a id="L403">403</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">defined $sub_name &amp;&amp; !ref($sub_name) ? :</td></tr>
-<tr><td class="h"><a id="L410">410</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $@</td></tr>
-<tr><td class="h"><a id="L415">415</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($_post_check) { }</td></tr>
-<tr><td class="h"><a id="L447">447</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $mode eq $MODE_NAMESPACE or $mode eq $MODE_ENFORCE</td></tr>
-<tr><td class="h"><a id="L464">464</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless $BYPASS or $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
-<tr><td class="h"><a id="L470">470</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless defined &amp;{&quot;${owner_pkg}::$sub_name&quot;;}</td></tr>
-<tr><td class="h"><a id="L496">496</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless $BYPASS or $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
-<tr><td class="h"><a id="L519">519</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $BYPASS</td></tr>
-<tr><td class="h"><a id="L520">520</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
-<tr><td class="h"><a id="L528">528</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless (defined $pkg)</td></tr>
-<tr><td class="h"><a id="L534">534</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $pkg eq $SELF</td></tr>
-<tr><td class="h"><a id="L538">538</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $pkg eq $owner_pkg</td></tr>
-<tr><td class="h"><a id="L559">559</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $caller eq $SELF</td></tr>
+<tr><td class="h"><a id="L167">167</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($phase eq &quot;BEGIN&quot;)</td></tr>
+<tr><td class="h"><a id="L169">169</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless $_post_check</td></tr>
+<tr><td class="h"><a id="L187">187</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($config{$KEY_MODE} eq $MODE_ENFORCE) { }</td></tr>
+<tr><td class="h"><a id="L317">317</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless @subs</td></tr>
+<tr><td class="h"><a id="L321">321</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $config{$KEY_MODE} ne $MODE_ENFORCE</td></tr>
+<tr><td class="h"><a id="L326">326</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">defined $sub_name &amp;&amp; !ref($sub_name) ? :</td></tr>
+<tr><td class="h"><a id="L333">333</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $@</td></tr>
+<tr><td class="h"><a id="L338">338</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if ($_post_check) { }</td></tr>
+<tr><td class="h"><a id="L339">339</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if (defined $^S) { }</td></tr>
+<tr><td class="h"><a id="L385">385</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $mode eq $MODE_NAMESPACE or $mode eq $MODE_ENFORCE</td></tr>
+<tr><td class="h"><a id="L402">402</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless $BYPASS or $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
+<tr><td class="h"><a id="L408">408</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless defined &amp;{&quot;${owner_pkg}::$sub_name&quot;;}</td></tr>
+<tr><td class="h"><a id="L434">434</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless $BYPASS or $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
+<tr><td class="h"><a id="L457">457</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $BYPASS</td></tr>
+<tr><td class="h"><a id="L458">458</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $config{$KEY_HARNESS_BYPASS} and $ENV{&#39;HARNESS_ACTIVE&#39;}</td></tr>
+<tr><td class="h"><a id="L466">466</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">unless (defined $pkg)</td></tr>
+<tr><td class="h"><a id="L472">472</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $pkg eq $SELF</td></tr>
+<tr><td class="h"><a id="L476">476</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $pkg eq $owner_pkg</td></tr>
+<tr><td class="h"><a id="L497">497</a></td><td class="c3">100</td><td class="c3">T</td><td class="c3">F</td><td class="s">if $caller eq $SELF</td></tr>
 </table>
 </body>
 </html>
