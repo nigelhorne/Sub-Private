@@ -34,6 +34,7 @@ t/pod-coverage.t
 t/pod-synopsis.t
 t/pod.t
 t/port.t
+t/runtime.t
 t/snippets.t
 t/spelling.t
 t/strict.t

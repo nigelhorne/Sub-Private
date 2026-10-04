@@ -1,5 +1,30 @@
 Revision history for Sub-Private
 
+0.06
+	[ Bug Fixes ]
+	Private subs are now protected when Sub::Private and the packages that
+	    use it are loaded after CHECK (run-time require, plugin loaders,
+	    string eval).  Previously such subs were left callable by anyone,
+	    and Perl warned "Too late to run CHECK block".  Needs Perl 5.14
+	    (${^GLOBAL_PHASE}); older Perls must load at compile time
+	The declarative form (use Sub::Private qw(...)) in a file loaded after
+	    CHECK now wraps the named subs at the end of the enclosing scope,
+	    so the use line can come before the subs it names
+	No longer warns "Too late to run CHECK block" when loaded at run time
+
+	[ Enhancements ]
+	The :Private attribute handler also runs in the BEGIN phase so subs
+	    compiled after CHECK are wrapped (or removed in namespace mode)
+	Updated POD: import() after CHECK, new KNOWN LIMITATIONS entry for
+	    Perl < 5.14
+
+	[ Testing ]
+	Added t/runtime.t: run-time loading of the attribute and declarative
+	    forms, string eval, namespace mode, and no warnings
+
+	[ Build ]
+	Added B::Hooks::EndOfScope to PREREQ_PM
+
 0.05	Wed Jun 10 08:32:26 EDT 2026
 	[ Enhancements ]
 	Added enforce mode for OO-safe private access ($config{mode} = 'enforce')

@@ -3,6 +3,7 @@
 requires 'perl', '5.008';
 
 requires 'Attribute::Handlers';
+requires 'B::Hooks::EndOfScope';
 requires 'Carp';
 requires 'Params::Validate::Strict', '0.33';
 requires 'Readonly';

@@ -21,6 +21,7 @@ WriteMakefile(
 		? ('LICENSE' => 'perl') : ()),
 	PREREQ_PM => {
 		'Attribute::Handlers'      => 0,
+		'B::Hooks::EndOfScope'     => 0,
 		'Carp'                     => 0,
 		'namespace::clean'         => 0,
 		'Params::Validate::Strict' => 0.33,
