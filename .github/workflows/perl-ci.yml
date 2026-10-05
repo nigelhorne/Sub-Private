@@ -34,6 +34,15 @@ jobs:
           - '5.36'
           - '5.38'
           - '5.40'
+        # Oldest supported Perl (MIN_PERL_VERSION) and a few in between,
+        # on Linux only to keep the matrix small.
+        include:
+          - os: ubuntu-latest
+            perl: '5.14'
+          - os: ubuntu-latest
+            perl: '5.22'
+          - os: ubuntu-latest
+            perl: '5.30'
     name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
     env:
       AUTOMATED_TESTING: 1

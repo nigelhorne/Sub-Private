@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 ## Version
 
-Version 0.05
+Version 0.06
 
 ## Synopsis
 
@@ -56,6 +56,25 @@ not inherit access: private means _this package only_.
     use Sub::Private;
     sub _helper :Private { ... }
     ```
+
+### Behaviour of Wrapped Subs (Enforce Mode)
+
+- The wrapper hands over with `goto &sub`, so it does not appear
+on the call stack: `caller` inside a private sub sees its real caller.
+- Arguments, `@_` aliasing and calling context (list, scalar or
+void) are passed through unchanged.
+- `$_` is left untouched, whether the call is allowed or blocked.
+- A blocked call croaks; it does not fall through to `AUTOLOAD`.
+- Works with [Moo](https://metacpan.org/pod/Moo) and [Moose](https://metacpan.org/pod/Moose) classes; use the declarative form
+after `use Moo` or `use Moose`.
+
+### Loading at Run Time
+
+Packages that use `Sub::Private` may be loaded at run time (`require`,
+a plugin loader, a string `eval`), and `Sub::Private` itself may be
+loaded for the first time that way.  The private subs are then wrapped
+(or removed, in `namespace` mode) when the enclosing scope, normally the
+rest of the file, has been compiled.
 
 ### Bypass for Testing
 
@@ -109,8 +128,7 @@ has already fired (for example the package is loaded with `require` at
 run time), the subs are wrapped as soon as the enclosing scope (normally
 the rest of the file) has been compiled, so the `use` line can still
 come before the subs it names.  A direct `Sub::Private->import(...)`
-call at run time wraps immediately.  Loading after `CHECK` needs Perl
-5.14 or later; see ["KNOWN LIMITATIONS"](#known-limitations).  Requires `$Sub::Private::config{mode}` to equal
+call at run time wraps immediately.  Requires `$Sub::Private::config{mode}` to equal
 `'enforce'`; croaks otherwise.
 
 #### Arguments
@@ -147,7 +165,7 @@ sub _init   { ... }    # wrapped at CHECK time
 sub run     { my $s = shift; $s->_helper; $s->_init }
 ```
 
-#### API Specification
+#### Api Specification
 
 ##### Input
 
@@ -192,6 +210,8 @@ Message                                              Meaning / Action
                                                      wrap time.  Define the sub before import()
                                                      runs, before CHECK fires, or (after CHECK)
                                                      before the end of the enclosing scope.
+                                                     After CHECK, the location reported is the
+                                                     "use Sub::Private" line.
 ```
 
 ## Public Variables
@@ -224,14 +244,6 @@ Module-level configuration hash.  Supported keys:
     dispatch uses the symbol table at runtime, which no longer contains the
     entry.  Use `enforce` mode for OO classes.
 
-- Loading after `CHECK` needs Perl 5.14
-
-    Packages loaded at run time (`require`, a plugin loader, a string
-    `eval`) are protected only on Perl 5.14 or later, which provides
-    `${^GLOBAL_PHASE}`.  On older Perls, load `Sub::Private` and the
-    packages that use it at compile time (`use`, or `require` inside
-    `BEGIN`); otherwise their private subs are left unprotected.
-
 - `enforce` mode: runtime-only
 
     Checks are runtime only; there is no compile-time enforcement.
@@ -239,13 +251,16 @@ Module-level configuration hash.  Supported keys:
 - `enforce` mode: raw coderef bypass
 
     A raw code reference obtained **before** wrapping (via `can()` or
-    `\&Foo::_helper`) bypasses the check.  The attribute form prevents this
-    because wrapping happens at CHECK time.
+    `\&Foo::_helper`) bypasses the check.  The attribute form makes this
+    hard because wrapping happens at CHECK time.  When the package is loaded
+    after CHECK, wrapping happens at the end of the enclosing scope, so a
+    `BEGIN` block earlier in the same file could still take a reference to
+    the unwrapped sub.
 
 - `enforce` mode: `can()` leaks private method existence
 
     In `enforce` mode the original sub is replaced by a wrapper closure, so
-    `->can('_helper')` returns the wrapper (truthy) even to callers outside
+    `->can('_helper')` returns the wrapper (a true value) even to callers outside
     the owner package.  In `namespace` mode the stash entry is deleted entirely,
     so `->can` correctly returns `undef`.  A future release may inject a
     caller-aware `can()` override into each class that uses `enforce` mode,
@@ -260,8 +275,10 @@ Module-level configuration hash.  Supported keys:
 
 ## Dependencies
 
+Perl 5.14 or later,
 [Carp](https://metacpan.org/pod/Carp) (core),
-[Attribute::Handlers](https://metacpan.org/pod/Attribute%3A%3AHandlers) (core since 5.8),
+[Attribute::Handlers](https://metacpan.org/pod/Attribute%3A%3AHandlers) (core),
+[B::Hooks::EndOfScope](https://metacpan.org/pod/B%3A%3AHooks%3A%3AEndOfScope),
 [Readonly](https://metacpan.org/pod/Readonly),
 [Params::Validate::Strict](https://metacpan.org/pod/Params%3A%3AValidate%3A%3AStrict),
 [Return::Set](https://metacpan.org/pod/Return%3A%3ASet),
@@ -284,7 +301,9 @@ Module-level configuration hash.  Supported keys:
 ## Formal Specification
 
 The following Z-notation schemas formally specify the `CheckAccess`
-operation.
+operation and `import`.
+
+### `CheckAccess`
 
 ```perl
 -- Type abbreviations
@@ -341,6 +360,57 @@ bypass_active(R) <=>
 --   permitted(caller, owner) <=> owner in anc(caller)   (ISA chain)
 ```
 
+### Import
+
+```perl
+-- Valid identifier predicate
+valid_id : SubName -> BOOL
+valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
+
+-- Compile phase: CHECK has run, and code is still being compiled
+post_check  : BOOL
+compiling   : BOOL       -- true while $^S is undefined
+
+-- Pre-condition (declarative form)
++-ImportPre-----------------------------------------+
+| config.mode = 'enforce'                           |
+| forall n in subs . valid_id(n)                    |
++---------------------------------------------------+
+
+-- Post-condition (before CHECK): queue for the CHECK block
++-ImportPost_PreCheck-------------------------------+
+| not post_check                                    |
+|---------------------------------------------------|
+| pending' = pending ++ < (caller, n) | n in subs > |
++---------------------------------------------------+
+
+-- Post-condition (after CHECK, at run time): wrap now
++-ImportPost_RunTime--------------------------------+
+| post_check and not compiling                      |
+| forall n in subs . defined(caller, n)             |
+|---------------------------------------------------|
+| forall n in subs .                                |
+|   stash'(caller, n) = wrapper(caller, n)          |
++---------------------------------------------------+
+
+-- Post-condition (after CHECK, while compiling): wrap at the
+-- end of the enclosing scope S
++-ImportPost_Deferred-------------------------------+
+| post_check and compiling                          |
+|---------------------------------------------------|
+| at end_of_scope(S) :                              |
+|   (forall n in subs . defined(caller, n)) =>      |
+|     forall n in subs .                            |
+|       stash'(caller, n) = wrapper(caller, n)      |
+|   (exists n in subs . not defined(caller, n)) =>  |
+|     croak at the "use" line                       |
++---------------------------------------------------+
+
+-- In every case, a sub that is not defined when wrapping is
+-- attempted croaks:
+--   "Sub::Private: " ++ caller ++ "::" ++ n ++ " is not defined"
+```
+
 ## Author
 
 Original Author:
@@ -365,41 +435,9 @@ perldoc Sub::Private
 
     [https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private](https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private)
 
-- Search CPAN
+- MetaCPAN
 
-    [https://search.cpan.org/dist/Sub-Private](https://search.cpan.org/dist/Sub-Private)
-
-### Formal Specification
-
-#### Import
-
-```perl
--- Type abbreviations
-SubName == seq CHAR      -- non-empty Perl identifier string
-
--- Valid identifier predicate
-valid_id : SubName -> BOOL
-valid_id(n) <=> n =~ /\A[_a-zA-Z]\w*\z/
-
--- Pre-condition (declarative form)
-+-ImportPre-----------------------------------------+
-| config.mode = 'enforce'                           |
-| forall n in subs . valid_id(n)                    |
-| forall n in subs . defined(&{caller + '::' + n})  |
-+---------------------------------------------------+
-
--- Post-condition (pre-CHECK path)
-+-ImportPost_PreCheck-------------------------------+
-| @_pending' = @_pending                            |
-|            union { (caller, n) | n in subs }      |
-+---------------------------------------------------+
-
--- Post-condition (post-CHECK path)
-+-ImportPost_PostCheck------------------------------+
-| forall n in subs .                                |
-|   stash(caller, n) = wrapper_closure(caller, n)   |
-+---------------------------------------------------+
-```
+    [https://metacpan.org/dist/Sub-Private](https://metacpan.org/dist/Sub-Private)
 
 ## Copyright & License
 

@@ -11,9 +11,6 @@ use File::Temp qw(tempdir);
 # require below is what loads it, after CHECK, exactly as a plugin loader
 # would.
 
-plan skip_all => 'Run-time loading needs ${^GLOBAL_PHASE} (Perl 5.14)'
-	if $] < 5.014;
-
 # The harness bypass would hide a leak.
 delete $ENV{HARNESS_ACTIVE};
 
@@ -112,6 +109,7 @@ subtest 'declarative form, use at the end of the file' => sub {
 subtest 'declarative form, undefined sub still croaks' => sub {
 	ok(!eval { require RtDeclMissing; 1 }, 'require fails');
 	like($@, qr/Sub::Private: RtDeclMissing::_missing is not defined/, 'with the usual message');
+	like($@, qr/RtDeclMissing\.pm line 3\./, 'reported at the "use" line');
 };
 
 subtest 'string eval after CHECK' => sub {

@@ -29,9 +29,8 @@ WriteMakefile(
 		'Return::Set'              => 0,
 		'Sub::Identify'            => 0,
 	}, TEST_REQUIRES => {
-		'IPC::System::Simple' => 0,
-		'Moo' => 0,
-		'Moose' => 0,
+		'File::Spec'          => 0,
+		'File::Temp'          => 0,
 		'Test::DescribeMe'    => 0,
 		'Test::Memory::Cycle' => 0,
 		'Test::Most'          => 0,
@@ -42,11 +41,21 @@ WriteMakefile(
 	dist    => $dist,
 	META_MERGE => {
 		'meta-spec' => { version => 2 },
+		prereqs => {
+			test => {
+				recommends => {
+					'Moo'               => 0,
+					'Moose'             => 0,
+					'Test::Mockingbird' => 0,
+					'Test::Returns'     => 0,
+				},
+			},
+		},
 		resources => {
 			homepage   => 'https://metacpan.org/pod/Sub::Private',
 			repository => {
 				type => 'git',
-				url  => 'git://github.com/nigelhorne/Sub-Private.git',
+				url  => 'https://github.com/nigelhorne/Sub-Private.git',
 				web  => 'https://github.com/nigelhorne/Sub-Private',
 			},
 			bugtracker => {
@@ -56,5 +65,5 @@ WriteMakefile(
 			},
 		},
 	},
-	MIN_PERL_VERSION => '5.008',
+	MIN_PERL_VERSION => '5.014',
 );
