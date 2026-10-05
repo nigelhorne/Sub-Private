@@ -466,7 +466,8 @@ subtest 'Moo integration test' => sub {
 
 	{
 		package IntMooBase;
-		use Moo;
+		require Moo;
+		Moo->import();
 		use Sub::Private qw(_moo_secret);
 
 		sub _moo_secret { 'moo secret' }
@@ -502,7 +503,8 @@ subtest 'Moose integration test' => sub {
 
 	{
 		package IntMooseBase;
-		use Moose;
+		require Moose;
+		Moose->import();
 		use Sub::Private qw(_moose_secret);
 
 		sub _moose_secret { 'moose secret' }
