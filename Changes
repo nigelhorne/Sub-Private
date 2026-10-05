@@ -1,6 +1,6 @@
 Revision history for Sub-Private
 
-0.06
+0.06	Sun Oct  4 09:09:09 PM EDT 2026
 	[ Bug Fixes ]
 	Private subs are now protected when Sub::Private and the packages that
 	    use it are loaded after CHECK (run-time require, plugin loaders,
