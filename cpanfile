@@ -5,6 +5,7 @@ requires 'perl', '5.014';
 requires 'Attribute::Handlers';
 requires 'B::Hooks::EndOfScope';
 requires 'Carp';
+requires 'IPC::System::Simple';
 requires 'Params::Validate::Strict', '0.33';
 requires 'Readonly';
 requires 'Return::Set';
@@ -19,7 +20,6 @@ on 'test' => sub {
 	requires 'Test::Most';
 	requires 'Test::Needs';
 	requires 'Test::NoWarnings';
-
 	recommends 'Moo';
 	recommends 'Moose';
 	recommends 'Test::Mockingbird';

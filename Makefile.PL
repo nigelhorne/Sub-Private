@@ -23,6 +23,11 @@ WriteMakefile(
 		'Attribute::Handlers'      => 0,
 		'B::Hooks::EndOfScope'     => 0,
 		'Carp'                     => 0,
+		# Not used directly.  Return::Set loads Params::Get, whose released
+		# versions (<= 0.17) "use autodie qw(:all)", which needs this at
+		# load time but only list it in TEST_REQUIRES.  Remove once a fixed
+		# Params::Get is out, and require that version here instead.
+		'IPC::System::Simple'      => 0,
 		'namespace::clean'         => 0,
 		'Params::Validate::Strict' => 0.33,
 		'Readonly'                 => 0,

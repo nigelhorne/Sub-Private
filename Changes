@@ -11,8 +11,9 @@ Revision history for Sub-Private
 	    so the use line can come before the subs it names.  If a named sub
 	    is never defined, the error is reported at the use line
 	No longer warns "Too late to run CHECK block" when loaded at run time
-	Removed "use autodie qw(:all)", which was unused and made
-	    IPC::System::Simple an undeclared runtime dependency
+	Removed "use autodie qw(:all)", which was unused
+	IPC::System::Simple is now a runtime prerequisite: Params::Get <= 0.17
+	    (loaded by Return::Set) needs it at load time but does not declare it
 
 	[ Enhancements ]
 	The :Private attribute handler also runs in the BEGIN phase so subs
