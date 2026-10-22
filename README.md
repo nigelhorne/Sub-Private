@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 ## Version
 
-Version 0.06
+Version 0.07
 
 ## Synopsis
 
@@ -48,7 +48,20 @@ not inherit access: private means _this package only_.
     call time and either delegates (owner package) or croaks (anyone else).
     Works correctly with OO dispatch (`$self-`\_helper>).
 
-    Enable before declaring your first private sub:
+    Enable it for your package only, in the `use` line:
+
+    ```perl
+    package MyClass;
+    use Sub::Private { mode => 'enforce' };
+    sub _helper :Private { ... }
+    ```
+
+    This is the recommended form for modules.  Other packages keep the mode
+    they chose, or the global `$Sub::Private::config{mode}`.
+
+    The older form sets the mode for every package in the program, and must
+    stay set until `CHECK`, so it changes how other modules' `:Private`
+    subs are handled.  Use it only in a program, not in a module:
 
     ```perl
     BEGIN { $Sub::Private::config{mode} = 'enforce' }
@@ -96,7 +109,9 @@ $Sub::Private::config{harness_bypass} = 0;
 ### Configuration
 
 ```
-$Sub::Private::config{mode}            -- 'namespace' (default) or 'enforce'
+use Sub::Private { mode => 'enforce' };  -- this package only (recommended)
+$Sub::Private::config{mode}            -- 'namespace' (default) or 'enforce',
+                                          for packages that chose no mode
 $Sub::Private::config{harness_bypass}  -- 1 (default); set to 0 to test enforcement
 ```
 
