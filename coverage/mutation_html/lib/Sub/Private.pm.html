@@ -246,8 +246,8 @@ pre details.mutant-details ul {
 <strong>Structural Coverage (Approximate)</strong><p>
 TER1 (Statement): 100.00%<br>
 TER2 (Branch): 100.00%<br>
-TER3 (LCSAJ): 100.0% (11/11)<br>
-Approximate LCSAJ segments: 41<br>
+TER3 (LCSAJ): 100.0% (16/16)<br>
+Approximate LCSAJ segments: 49<br>
 </div>
 
     <div class="legend">
@@ -315,11 +315,11 @@ Approximate LCSAJ segments: 41<br>
 </span><span class="">   23: 
 </span><span class="">   24: =head1 VERSION
 </span><span class="">   25: 
-</span><span class="">   26: Version 0.06
+</span><span class="">   26: Version 0.07
 </span><span class="">   27: 
 </span><span class="">   28: =cut
 </span><span class="">   29: 
-</span><span class="">   30: our $VERSION = &#39;0.06&#39;;
+</span><span class="">   30: our $VERSION = &#39;0.07&#39;;
 </span><span class="">   31: 
 </span><span class="">   32: # ---------------------------------------------------------------------------
 </span><span class="">   33: # Mode-name constants.  Using Readonly prevents accidental overwriting.
@@ -332,746 +332,883 @@ Approximate LCSAJ segments: 41<br>
 </span><span class="">   40: Readonly::Scalar my $KEY_MODE           =&gt; &#39;mode&#39;;
 </span><span class="">   41: Readonly::Scalar my $KEY_HARNESS_BYPASS =&gt; &#39;harness_bypass&#39;;
 </span><span class="">   42: 
-</span><span class="">   43: # Self-referential constant: the canonical name of this package.
-</span><span class="">   44: Readonly::Scalar my $SELF =&gt; __PACKAGE__;
-</span><span class="">   45: 
-</span><span class="">   46: # Validation schema for a single Perl sub name passed to import().
-</span><span class="">   47: Readonly::Scalar my $SUB_NAME_SCHEMA =&gt; {
-</span><span class="">   48: 	name =&gt; {
-</span><span class="">   49: 		type  =&gt; &#39;string&#39;,
-</span><span class="">   50: 		regex =&gt; qr/\A[_a-zA-Z]\w*\z/,
-</span><span class="">   51: 	}
-</span><span class="">   52: };
-</span><span class="">   53: 
-</span><span class="">   54: =head1 SYNOPSIS
-</span><span class="">   55: 
-</span><span class="">   56:     package Foo;
-</span><span class="">   57:     use Sub::Private;
-</span><span class="">   58: 
-</span><span class="">   59:     sub foo { return 42 }
-</span><span class="">   60: 
-</span><span class="">   61:     sub bar :Private {
-</span><span class="">   62:         return foo() + 1;
-</span><span class="">   63:     }
+</span><span class="">   43: # The phase name the attribute handler passes to itself when it finishes,
+</span><span class="">   44: # at the end of the enclosing scope, a sub compiled after CHECK.
+</span><span class="">   45: Readonly::Scalar my $PHASE_SCOPE_END =&gt; &#39;SCOPE_END&#39;;
+</span><span class="">   46: 
+</span><span class="">   47: # Self-referential constant: the canonical name of this package.
+</span><span class="">   48: Readonly::Scalar my $SELF =&gt; __PACKAGE__;
+</span><span class="">   49: 
+</span><span class="">   50: # Validation schema for a single Perl sub name passed to import().
+</span><span class="">   51: Readonly::Scalar my $SUB_NAME_SCHEMA =&gt; {
+</span><span class="">   52: 	name =&gt; {
+</span><span class="">   53: 		type  =&gt; &#39;string&#39;,
+</span><span class="">   54: 		regex =&gt; qr/\A[_a-zA-Z]\w*\z/,
+</span><span class="">   55: 	}
+</span><span class="">   56: };
+</span><span class="">   57: 
+</span><span class="">   58: =head1 SYNOPSIS
+</span><span class="">   59: 
+</span><span class="">   60:     package Foo;
+</span><span class="">   61:     use Sub::Private;
+</span><span class="">   62: 
+</span><span class="">   63:     sub foo { return 42 }
 </span><span class="">   64: 
-</span><span class="">   65:     sub baz {
-</span><span class="">   66:         return bar() + 1;
+</span><span class="">   65:     sub bar :Private {
+</span><span class="">   66:         return foo() + 1;
 </span><span class="">   67:     }
 </span><span class="">   68: 
-</span><span class="">   69: =head1 DESCRIPTION
-</span><span class="">   70: 
-</span><span class="">   71: Enforces strictly private access on subroutines.  A subroutine decorated
-</span><span class="">   72: with C&lt;:Private&gt; (or named in C&lt;use Sub::Private qw(...)&gt; when in enforce
-</span><span class="">   73: mode) may only be called from within its defining package.  Subclasses do
-</span><span class="">   74: not inherit access: private means I&lt;this package only&gt;.
-</span><span class="">   75: 
-</span><span class="">   76: =head2 Two enforcement modes
-</span><span class="">   77: 
-</span><span class="">   78: =over 4
+</span><span class="">   69:     sub baz {
+</span><span class="">   70:         return bar() + 1;
+</span><span class="">   71:     }
+</span><span class="">   72: 
+</span><span class="">   73: =head1 DESCRIPTION
+</span><span class="">   74: 
+</span><span class="">   75: Enforces strictly private access on subroutines.  A subroutine decorated
+</span><span class="">   76: with C&lt;:Private&gt; (or named in C&lt;use Sub::Private qw(...)&gt; when in enforce
+</span><span class="">   77: mode) may only be called from within its defining package.  Subclasses do
+</span><span class="">   78: not inherit access: private means I&lt;this package only&gt;.
 </span><span class="">   79: 
-</span><span class="">   80: =item C&lt;namespace&gt; mode (default, backward-compatible)
+</span><span class="">   80: =head2 Two enforcement modes
 </span><span class="">   81: 
-</span><span class="">   82: Removes the subroutine from the package symbol table using
-</span><span class="">   83: L&lt;namespace::clean&gt;.  Direct (non-method) function calls compiled before
-</span><span class="">   84: cleanup still work because Perl optimises them to direct opcode references.
-</span><span class="">   85: OO method dispatch (C&lt;$self-&gt;name&gt;) does not work for private subs in this
-</span><span class="">   86: mode because method lookup uses the symbol table at runtime.
-</span><span class="">   87: 
-</span><span class="">   88: This is the default mode and is backward-compatible with all existing code.
-</span><span class="">   89: 
-</span><span class="">   90: =item C&lt;enforce&gt; mode (OO-safe, opt-in)
+</span><span class="">   82: =over 4
+</span><span class="">   83: 
+</span><span class="">   84: =item C&lt;namespace&gt; mode (default, backward-compatible)
+</span><span class="">   85: 
+</span><span class="">   86: Removes the subroutine from the package symbol table using
+</span><span class="">   87: L&lt;namespace::clean&gt;.  Direct (non-method) function calls compiled before
+</span><span class="">   88: cleanup still work because Perl optimises them to direct opcode references.
+</span><span class="">   89: OO method dispatch (C&lt;$self-&gt;name&gt;) does not work for private subs in this
+</span><span class="">   90: mode because method lookup uses the symbol table at runtime.
 </span><span class="">   91: 
-</span><span class="">   92: Replaces the subroutine with a wrapper closure that checks C&lt;caller&gt; at
-</span><span class="">   93: call time and either delegates (owner package) or croaks (anyone else).
-</span><span class="">   94: Works correctly with OO dispatch (C&lt;$self-&gt;_helper&gt;).
+</span><span class="">   92: This is the default mode and is backward-compatible with all existing code.
+</span><span class="">   93: 
+</span><span class="">   94: =item C&lt;enforce&gt; mode (OO-safe, opt-in)
 </span><span class="">   95: 
-</span><span class="">   96: Enable before declaring your first private sub:
-</span><span class="">   97: 
-</span><span class="">   98:     BEGIN { $Sub::Private::config{mode} = &#39;enforce&#39; }
-</span><span class="">   99:     package MyClass;
-</span><span class="">  100:     use Sub::Private;
-</span><span class="">  101:     sub _helper :Private { ... }
-</span><span class="">  102: 
-</span><span class="">  103: =back
-</span><span class="">  104: 
-</span><span class="">  105: =head2 Behaviour of wrapped subs (enforce mode)
-</span><span class="">  106: 
-</span><span class="">  107: =over 4
+</span><span class="">   96: Replaces the subroutine with a wrapper closure that checks C&lt;caller&gt; at
+</span><span class="">   97: call time and either delegates (owner package) or croaks (anyone else).
+</span><span class="">   98: Works correctly with OO dispatch (C&lt;$self-&gt;_helper&gt;).
+</span><span class="">   99: 
+</span><span class="">  100: Enable it for your package only, in the C&lt;use&gt; line:
+</span><span class="">  101: 
+</span><span class="">  102:     package MyClass;
+</span><span class="">  103:     use Sub::Private { mode =&gt; &#39;enforce&#39; };
+</span><span class="">  104:     sub _helper :Private { ... }
+</span><span class="">  105: 
+</span><span class="">  106: This is the recommended form for modules.  Other packages keep the mode
+</span><span class="">  107: they chose, or the global C&lt;$Sub::Private::config{mode}&gt;.
 </span><span class="">  108: 
-</span><span class="">  109: =item * The wrapper hands over with C&lt;goto &amp;sub&gt;, so it does not appear
-</span><span class="">  110: on the call stack: C&lt;caller&gt; inside a private sub sees its real caller.
-</span><span class="">  111: 
-</span><span class="">  112: =item * Arguments, C&lt;@_&gt; aliasing and calling context (list, scalar or
-</span><span class="">  113: void) are passed through unchanged.
-</span><span class="">  114: 
-</span><span class="">  115: =item * C&lt;$_&gt; is left untouched, whether the call is allowed or blocked.
-</span><span class="">  116: 
-</span><span class="">  117: =item * A blocked call croaks; it does not fall through to C&lt;AUTOLOAD&gt;.
-</span><span class="">  118: 
-</span><span class="">  119: =item * Works with L&lt;Moo&gt; and L&lt;Moose&gt; classes; use the declarative form
-</span><span class="">  120: after C&lt;use Moo&gt; or C&lt;use Moose&gt;.
+</span><span class="">  109: The older form sets the mode for every package in the program, and must
+</span><span class="">  110: stay set until C&lt;CHECK&gt;, so it changes how other modules&#39; C&lt;:Private&gt;
+</span><span class="">  111: subs are handled.  Use it only in a program, not in a module:
+</span><span class="">  112: 
+</span><span class="">  113:     BEGIN { $Sub::Private::config{mode} = &#39;enforce&#39; }
+</span><span class="">  114:     package MyClass;
+</span><span class="">  115:     use Sub::Private;
+</span><span class="">  116:     sub _helper :Private { ... }
+</span><span class="">  117: 
+</span><span class="">  118: =back
+</span><span class="">  119: 
+</span><span class="">  120: =head2 Behaviour of wrapped subs (enforce mode)
 </span><span class="">  121: 
-</span><span class="">  122: =back
+</span><span class="">  122: =over 4
 </span><span class="">  123: 
-</span><span class="">  124: =head2 Loading at run time
-</span><span class="">  125: 
-</span><span class="">  126: Packages that use C&lt;Sub::Private&gt; may be loaded at run time (C&lt;require&gt;,
-</span><span class="">  127: a plugin loader, a string C&lt;eval&gt;), and C&lt;Sub::Private&gt; itself may be
-</span><span class="">  128: loaded for the first time that way.  The private subs are then wrapped
-</span><span class="">  129: (or removed, in C&lt;namespace&gt; mode) when the enclosing scope, normally the
-</span><span class="">  130: rest of the file, has been compiled.
+</span><span class="">  124: =item * The wrapper hands over with C&lt;goto &amp;sub&gt;, so it does not appear
+</span><span class="">  125: on the call stack: C&lt;caller&gt; inside a private sub sees its real caller.
+</span><span class="">  126: 
+</span><span class="">  127: =item * Arguments, C&lt;@_&gt; aliasing and calling context (list, scalar or
+</span><span class="">  128: void) are passed through unchanged.
+</span><span class="">  129: 
+</span><span class="">  130: =item * C&lt;$_&gt; is left untouched, whether the call is allowed or blocked.
 </span><span class="">  131: 
-</span><span class="">  132: =head2 Bypass for testing
+</span><span class="">  132: =item * A blocked call croaks; it does not fall through to C&lt;AUTOLOAD&gt;.
 </span><span class="">  133: 
-</span><span class="">  134: Either condition alone (OR logic) disables all access checks in enforce
-</span><span class="">  135: mode:
+</span><span class="">  134: =item * Works with L&lt;Moo&gt; and L&lt;Moose&gt; classes; use the declarative form
+</span><span class="">  135: after C&lt;use Moo&gt; or C&lt;use Moose&gt;.
 </span><span class="">  136: 
-</span><span class="">  137: =over 4
+</span><span class="">  137: =back
 </span><span class="">  138: 
-</span><span class="">  139: =item * C&lt;$Sub::Private::BYPASS&gt; set to a true value.  Use C&lt;local&gt; in
-</span><span class="">  140: tests.
-</span><span class="">  141: 
-</span><span class="">  142: =item * C&lt;$ENV{HARNESS_ACTIVE}&gt; set (the convention used by
-</span><span class="">  143: L&lt;Test::Harness&gt;/prove).
-</span><span class="">  144: 
-</span><span class="">  145: =back
+</span><span class="">  139: =head2 Loading at run time
+</span><span class="">  140: 
+</span><span class="">  141: Packages that use C&lt;Sub::Private&gt; may be loaded at run time (C&lt;require&gt;,
+</span><span class="">  142: a plugin loader, a string C&lt;eval&gt;), and C&lt;Sub::Private&gt; itself may be
+</span><span class="">  143: loaded for the first time that way.  The private subs are then wrapped
+</span><span class="">  144: (or removed, in C&lt;namespace&gt; mode) when the enclosing scope, normally the
+</span><span class="">  145: rest of the file, has been compiled.
 </span><span class="">  146: 
-</span><span class="">  147: C&lt;$Sub::Private::BYPASS&gt; is the recommended form for new test code.
-</span><span class="">  148: The C&lt;HARNESS_ACTIVE&gt; bypass can be disabled:
-</span><span class="">  149: 
-</span><span class="">  150:     $Sub::Private::config{harness_bypass} = 0;
+</span><span class="">  147: =head2 Bypass for testing
+</span><span class="">  148: 
+</span><span class="">  149: Either condition alone (OR logic) disables all access checks in enforce
+</span><span class="">  150: mode:
 </span><span class="">  151: 
-</span><span class="">  152: =head2 Configuration
+</span><span class="">  152: =over 4
 </span><span class="">  153: 
-</span><span class="">  154:     $Sub::Private::config{mode}            -- &#39;namespace&#39; (default) or &#39;enforce&#39;
-</span><span class="">  155:     $Sub::Private::config{harness_bypass}  -- 1 (default); set to 0 to test enforcement
+</span><span class="">  154: =item * C&lt;$Sub::Private::BYPASS&gt; set to a true value.  Use C&lt;local&gt; in
+</span><span class="">  155: tests.
 </span><span class="">  156: 
-</span><span class="">  157: =head2 Error message format (enforce mode)
-</span><span class="">  158: 
-</span><span class="">  159:     bar() is a private subroutine of Foo and cannot be called from Bar
-</span><span class="">  160: 
-</span><span class="">  161: =cut
-</span><span class="">  162: 
-</span><span class="">  163: # Public bypass flag.  Use C&lt;local $Sub::Private::BYPASS = 1&gt; in test code.
-</span><span class="">  164: our $BYPASS = 0;
-</span><span class="">  165: 
-</span><span class="">  166: # Module configuration.  //= preserves any value a caller set in a BEGIN
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  167: # block before this module body runs.
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  168: our %config;
-</span><span class="">  169: $config{$KEY_MODE}           //= $MODE_NAMESPACE;
-</span><span class="">  170: $config{$KEY_HARNESS_BYPASS} //= 1;
-</span><span class="">  171: 
-</span><span class="">  172: # Pending (owner_pkg, sub_name) pairs to be wrapped at CHECK time.
-</span><span class="">  173: # Populated by import(); consumed and cleared by the CHECK block.
-</span><span class="">  174: my @_pending;
+</span><span class="">  157: =item * C&lt;$ENV{HARNESS_ACTIVE}&gt; set (the convention used by
+</span><span class="">  158: L&lt;Test::Harness&gt;/prove).
+</span><span class="">  159: 
+</span><span class="">  160: =back
+</span><span class="">  161: 
+</span><span class="">  162: C&lt;$Sub::Private::BYPASS&gt; is the recommended form for new test code.
+</span><span class="">  163: The C&lt;HARNESS_ACTIVE&gt; bypass can be disabled:
+</span><span class="">  164: 
+</span><span class="">  165:     $Sub::Private::config{harness_bypass} = 0;
+</span><span class="">  166: 
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  167: =head2 Configuration
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  168: 
+</span><span class="">  169:     use Sub::Private { mode =&gt; &#39;enforce&#39; };  -- this package only (recommended)
+</span><span class="">  170:     $Sub::Private::config{mode}            -- &#39;namespace&#39; (default) or &#39;enforce&#39;,
+</span><span class="">  171:                                               for packages that chose no mode
+</span><span class="">  172:     $Sub::Private::config{harness_bypass}  -- 1 (default); set to 0 to test enforcement
+</span><span class="">  173: 
+</span><span class="">  174: =head2 Error message format (enforce mode)
 </span><span class="">  175: 
-</span><span class="">  176: # True once CHECK has run, so wrapping must happen without it.  Set by our
-</span><span class="">  177: # own CHECK block, or here when this module is first loaded after CHECK
-</span><span class="">  178: # (run-time require, plugin loader, string eval).
-</span><span class="">  179: my $_post_check = (${^GLOBAL_PHASE} ne &#39;START&#39;) ? 1 : 0;
-</span><span class="">  180: 
-</span><span class="">  181: # -------------------------------------------------------------------
-</span><span class="">  182: # ATTRIBUTE HANDLER
-</span><span class="">  183: # -------------------------------------------------------------------
-</span><span class="">  184: 
-</span><span class="">  185: # Install :Private in UNIVERSAL so every package can use it after a
-</span><span class="">  186: # single &quot;use Sub::Private&quot;, with no per-package setup required.
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  187: # ATTR(CODE,CHECK) fires at CHECK time, after all subs are compiled.
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  188: # The BEGIN phase covers code compiled after CHECK, when the CHECK-phase
-</span><span class="">  189: # call never comes.
-</span><span class="">  190: sub UNIVERSAL::Private :ATTR(CODE,BEGIN,CHECK) {
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">191 → 193 → 208</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">191 → 193 → 0</span></span>  191: 	my ($package, $symbol, $referent, $attr, $data, $phase) = @_;
+</span><span class="">  176:     bar() is a private subroutine of Foo and cannot be called from Bar
+</span><span class="">  177: 
+</span><span class="">  178: =cut
+</span><span class="">  179: 
+</span><span class="">  180: # Public bypass flag.  Use C&lt;local $Sub::Private::BYPASS = 1&gt; in test code.
+</span><span class="">  181: our $BYPASS = 0;
+</span><span class="">  182: 
+</span><span class="">  183: # Module configuration.  //= preserves any value a caller set in a BEGIN
+</span><span class="">  184: # block before this module body runs.
+</span><span class="">  185: our %config;
+</span><span class="">  186: $config{$KEY_MODE}           //= $MODE_NAMESPACE;
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  187: $config{$KEY_HARNESS_BYPASS} //= 1;
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  188: 
+</span><span class="">  189: # Pending (owner_pkg, sub_name) pairs to be wrapped at CHECK time.
+</span><span class="">  190: # Populated by import(); consumed and cleared by the CHECK block.
+</span><span class="">  191: my @_pending;
 </span><span class="">  192: 
-</span><span class="">  193: 	if ($phase eq &#39;BEGIN&#39;) {
-</span><span class="">  194: 		# Before CHECK, the CHECK-phase call does the work.
-</span><span class="">  195: 		return unless $_post_check;
+</span><span class="">  193: # Modes chosen per package with &quot;use Sub::Private { mode =&gt; ... }&quot;, keyed by
+</span><span class="">  194: # package name.  A package not listed uses $config{mode}.
+</span><span class="">  195: my %_package_mode;
 </span><span class="">  196: 
-</span><span class="">  197: 		# After CHECK the sub is still being compiled and may have no name
-</span><span class="">  198: 		# yet, so finish the job when the enclosing scope is compiled.
-</span><span class="">  199: 		# on_scope_end works here because the user&#39;s code is compiling.
-</span><span class="">  200: 		B::Hooks::EndOfScope::on_scope_end(sub {
-</span><span class="">  201: 			my ($pkg, $name) = get_code_info($referent);
-</span><span class="">  202: 			no strict &#39;refs&#39;;	## no critic (ProhibitNoStrict)
-</span><span class="">  203: 			UNIVERSAL::Private($pkg, \*{&quot;${pkg}::$name&quot;}, $referent, $attr, $data, &#39;CHECK&#39;);
-</span><span class="">  204: 		});
-</span><span class="">  205: 		return;
-</span><span class="">  206: 	}
-</span><span class="">  207: 
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">208 → 213 → 223</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">208 → 213 → 0</span></span>  208: 	my $sub_name = *{$symbol}{NAME};
-</span><span class="">  209: 
-</span><span class="">  210: 	# Reject unrecognised mode values early rather than silently misbehaving.
-</span><span class="">  211: 	_assert_known_mode($config{$KEY_MODE});
-</span><span class="">  212: 
-</span><span class="">  213: 	if ($config{$KEY_MODE} eq $MODE_ENFORCE) {
-</span><span class="">  214: 		# Enforce mode: replace the stash entry with an access-checking wrapper.
-</span><span class="">  215: 		no warnings &#39;redefine&#39;;
-</span><span class="">  216: 		*{$symbol} = _wrap($package, $sub_name, $referent);
-</span><span class="">  217: 	} else {
-</span><span class="">  218: 		# Namespace mode: remove the sub from the stash entirely.
-</span><span class="">  219: 		# on_scope_end does NOT work from a CHECK-phase callback, so we call
-</span><span class="">  220: 		# clean_subroutines() directly here.
-</span><span class="">  221: 		namespace::clean-&gt;clean_subroutines( get_code_info($referent) );
-</span><span class="">  222: 	}
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">223 → 223 → 0</span></span>  223: 	return;
-</span><span class="">  224: }
-</span><span class="">  225: 
-</span><span class="">  226: # -------------------------------------------------------------------
-</span><span class="">  227: # PUBLIC INTERFACE
-</span><span class="">  228: # -------------------------------------------------------------------
-</span><span class="">  229: 
-</span><span class="">  230: =head1 PUBLIC INTERFACE
-</span><span class="">  231: 
-</span><span class="">  232: =head2 import
-</span><span class="">  233: 
-</span><span class="">  234:     use Sub::Private;                    # attribute form -- no arguments
-</span><span class="">  235:     use Sub::Private qw(_a _b _c);      # declarative form (enforce mode only)
+</span><span class="">  197: # True once CHECK has run, so wrapping must happen without it.  Set by our
+</span><span class="">  198: # own CHECK block, or here when this module is first loaded after CHECK
+</span><span class="">  199: # (run-time require, plugin loader, string eval).
+</span><span class="">  200: my $_post_check = (${^GLOBAL_PHASE} ne &#39;START&#39;) ? 1 : 0;
+</span><span class="">  201: 
+</span><span class="">  202: # -------------------------------------------------------------------
+</span><span class="">  203: # ATTRIBUTE HANDLER
+</span><span class="">  204: # -------------------------------------------------------------------
+</span><span class="">  205: 
+</span><span class="">  206: # Install :Private in UNIVERSAL so every package can use it after a
+</span><span class="">  207: # single &quot;use Sub::Private&quot;, with no per-package setup required.
+</span><span class="">  208: # ATTR(CODE,CHECK) fires at CHECK time, after all subs are compiled.
+</span><span class="">  209: # The BEGIN phase covers code compiled after CHECK, when the CHECK-phase
+</span><span class="">  210: # call never comes.
+</span><span class="">  211: sub UNIVERSAL::Private :ATTR(CODE,BEGIN,CHECK) {
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">212 → 214 → 235</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">212 → 214 → 0</span></span>  212: 	my ($package, $symbol, $referent, $attr, $data, $phase) = @_;
+</span><span class="">  213: 
+</span><span class="">  214: 	if ($phase eq &#39;BEGIN&#39;) {
+</span><span class="">  215: 		# Before CHECK, the CHECK-phase call does the work.
+</span><span class="">  216: 		return unless $_post_check;
+</span><span class="">  217: 
+</span><span class="">  218: 		# After CHECK the sub is still being compiled and may have no name
+</span><span class="">  219: 		# yet, so finish the job when the enclosing scope is compiled.
+</span><span class="">  220: 		# on_scope_end works here because the user&#39;s code is compiling.
+</span><span class="">  221: 		B::Hooks::EndOfScope::on_scope_end(sub {
+</span><span class="">  222: 			my ($pkg, $name) = get_code_info($referent);
+</span><span class="">  223: 			no strict &#39;refs&#39;;	## no critic (ProhibitNoStrict)
+</span><span class="">  224: 			UNIVERSAL::Private($pkg, \*{&quot;${pkg}::$name&quot;}, $referent, $attr, $data, $PHASE_SCOPE_END);
+</span><span class="">  225: 		});
+</span><span class="">  226: 		return;
+</span><span class="">  227: 	}
+</span><span class="">  228: 
+</span><span class="">  229: 	# Once its own CHECK block has run, Attribute::Handlers also makes the
+</span><span class="">  230: 	# CHECK-phase call straight away for code compiled later, before the sub
+</span><span class="">  231: 	# is named or installed ($symbol is then &#39;ANON&#39;).  Acting on it removed
+</span><span class="">  232: 	# the half-compiled sub in namespace mode, and installed a wrapper as
+</span><span class="">  233: 	# main::ANON in enforce mode.  The BEGIN-phase call above deals with
+</span><span class="">  234: 	# that code, so only the real CHECK phase is used here.
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">235 → 245 → 255</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">235 → 245 → 0</span></span>  235: 	return if $phase eq &#39;CHECK&#39; &amp;&amp; ${^GLOBAL_PHASE} ne &#39;CHECK&#39;;
 </span><span class="">  236: 
-</span><span class="">  237: =head3 Purpose
+</span><span class="">  237: 	my $sub_name = *{$symbol}{NAME};
 </span><span class="">  238: 
-</span><span class="">  239: Called automatically by C&lt;use Sub::Private&gt;.
-</span><span class="">  240: 
-</span><span class="">  241: With B&lt;no arguments&gt;: makes the C&lt;:Private&gt; attribute globally available
-</span><span class="">  242: via C&lt;UNIVERSAL&gt;.  No other action is taken.
-</span><span class="">  243: 
-</span><span class="">  244: With B&lt;one or more sub names&gt;: registers those named subs in the calling
-</span><span class="">  245: package for access-enforcement wrapping at C&lt;CHECK&gt; time.  If C&lt;CHECK&gt;
-</span><span class="">  246: has already fired (for example the package is loaded with C&lt;require&gt; at
-</span><span class="">  247: run time), the subs are wrapped as soon as the enclosing scope (normally
-</span><span class="">  248: the rest of the file) has been compiled, so the C&lt;use&gt; line can still
-</span><span class="">  249: come before the subs it names.  A direct C&lt;&lt; Sub::Private-&gt;import(...) &gt;&gt;
-</span><span class="">  250: call at run time wraps immediately.  Requires C&lt;$Sub::Private::config{mode}&gt; to equal
-</span><span class="">  251: C&lt;&#39;enforce&#39;&gt;; croaks otherwise.
-</span><span class="">  252: 
-</span><span class="">  253: =head3 Arguments
-</span><span class="">  254: 
-</span><span class="">  255: =over 4
-</span><span class="">  256: 
-</span><span class="">  257: =item C&lt;@subs&gt; (optional)
-</span><span class="">  258: 
-</span><span class="">  259: Zero or more Perl sub names.  Each must be a defined, non-reference scalar
-</span><span class="">  260: matching C&lt;/\A[_a-zA-Z]\w*\z/&gt;.  C&lt;undef&gt;, references, empty strings, and
-</span><span class="">  261: names starting with a digit or containing hyphens are all rejected.
-</span><span class="">  262: 
-</span><span class="">  263: =back
-</span><span class="">  264: 
-</span><span class="">  265: =head3 Returns
-</span><span class="">  266: 
-</span><span class="">  267: The class name (C&lt;&#39;Sub::Private&#39;&gt;) as a plain string in all cases.
-</span><span class="">  268: 
-</span><span class="">  269: =head3 Side effects
+</span><span class="">  239: 	# The mode chosen by the sub&#39;s own package, or else the global one.
+</span><span class="">  240: 	my $mode = _mode_for($package);
+</span><span class="">  241: 
+</span><span class="">  242: 	# Reject unrecognised mode values early rather than silently misbehaving.
+</span><span class="">  243: 	_assert_known_mode($mode);
+</span><span class="">  244: 
+</span><span class="">  245: 	if ($mode eq $MODE_ENFORCE) {
+</span><span class="">  246: 		# Enforce mode: replace the stash entry with an access-checking wrapper.
+</span><span class="">  247: 		no warnings &#39;redefine&#39;;
+</span><span class="">  248: 		*{$symbol} = _wrap($package, $sub_name, $referent);
+</span><span class="">  249: 	} else {
+</span><span class="">  250: 		# Namespace mode: remove the sub from the stash entirely.
+</span><span class="">  251: 		# on_scope_end does NOT work from a CHECK-phase callback, so we call
+</span><span class="">  252: 		# clean_subroutines() directly here.
+</span><span class="">  253: 		namespace::clean-&gt;clean_subroutines( get_code_info($referent) );
+</span><span class="">  254: 	}
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">255 → 255 → 0</span></span>  255: 	return;
+</span><span class="">  256: }
+</span><span class="">  257: 
+</span><span class="">  258: # -------------------------------------------------------------------
+</span><span class="">  259: # PUBLIC INTERFACE
+</span><span class="">  260: # -------------------------------------------------------------------
+</span><span class="">  261: 
+</span><span class="">  262: =head1 PUBLIC INTERFACE
+</span><span class="">  263: 
+</span><span class="">  264: =head2 import
+</span><span class="">  265: 
+</span><span class="">  266:     use Sub::Private;                    # attribute form -- no arguments
+</span><span class="">  267:     use Sub::Private qw(_a _b _c);      # declarative form (enforce mode only)
+</span><span class="">  268:     use Sub::Private { mode =&gt; &#39;enforce&#39; };              # mode for this package
+</span><span class="">  269:     use Sub::Private { mode =&gt; &#39;enforce&#39; }, qw(_a _b);   # both
 </span><span class="">  270: 
-</span><span class="">  271: =over 4
+</span><span class="">  271: =head3 Purpose
 </span><span class="">  272: 
-</span><span class="">  273: =item * Pre-CHECK: appends C&lt;[$owner_pkg, $sub_name]&gt; pairs to the
-</span><span class="">  274: internal C&lt;@_pending&gt; list.
-</span><span class="">  275: 
-</span><span class="">  276: =item * Post-CHECK, during compilation: installs wrapper closures in the
-</span><span class="">  277: calling package&#39;s stash when the enclosing scope has been compiled.
-</span><span class="">  278: 
-</span><span class="">  279: =item * Post-CHECK, at run time: installs wrapper closures directly in the
-</span><span class="">  280: calling package&#39;s stash.
-</span><span class="">  281: 
-</span><span class="">  282: =back
-</span><span class="">  283: 
-</span><span class="">  284: =head3 Example
+</span><span class="">  273: Called automatically by C&lt;use Sub::Private&gt;.
+</span><span class="">  274: 
+</span><span class="">  275: With B&lt;no arguments&gt;: makes the C&lt;:Private&gt; attribute globally available
+</span><span class="">  276: via C&lt;UNIVERSAL&gt;.  No other action is taken.
+</span><span class="">  277: 
+</span><span class="">  278: With B&lt;a hash reference first&gt;: sets options for the calling package
+</span><span class="">  279: only.  The one option is C&lt;mode&gt;, C&lt;&#39;namespace&#39;&gt; or C&lt;&#39;enforce&#39;&gt;.  It
+</span><span class="">  280: decides what happens to that package&#39;s C&lt;:Private&gt; subs and whether it
+</span><span class="">  281: may use the declarative form, whatever C&lt;$Sub::Private::config{mode}&gt;
+</span><span class="">  282: says.  The global mode is not changed, so other packages are not
+</span><span class="">  283: affected.  The mode applies to subs in the package that made the C&lt;use&gt;
+</span><span class="">  284: call, so put the C&lt;use&gt; line inside the package.
 </span><span class="">  285: 
-</span><span class="">  286:     BEGIN { $Sub::Private::config{mode} = &#39;enforce&#39; }
-</span><span class="">  287:     package MyClass;
-</span><span class="">  288:     use Sub::Private qw(_helper _init);
-</span><span class="">  289: 
-</span><span class="">  290:     sub new     { bless {}, shift }
-</span><span class="">  291:     sub _helper { ... }    # wrapped at CHECK time
-</span><span class="">  292:     sub _init   { ... }    # wrapped at CHECK time
-</span><span class="">  293:     sub run     { my $s = shift; $s-&gt;_helper; $s-&gt;_init }
-</span><span class="">  294: 
-</span><span class="">  295: =head3 API SPECIFICATION
-</span><span class="">  296: 
-</span><span class="">  297: =head4 Input
-</span><span class="">  298: 
-</span><span class="">  299:     # No-argument form: always valid.
-</span><span class="">  300:     Sub::Private-&gt;import();
+</span><span class="">  286: With B&lt;one or more sub names&gt;: registers those named subs in the calling
+</span><span class="">  287: package for access-enforcement wrapping at C&lt;CHECK&gt; time.  If C&lt;CHECK&gt;
+</span><span class="">  288: has already fired (for example the package is loaded with C&lt;require&gt; at
+</span><span class="">  289: run time), the subs are wrapped as soon as the enclosing scope (normally
+</span><span class="">  290: the rest of the file) has been compiled, so the C&lt;use&gt; line can still
+</span><span class="">  291: come before the subs it names.  A direct C&lt;&lt; Sub::Private-&gt;import(...) &gt;&gt;
+</span><span class="">  292: call at run time wraps immediately.  Requires the package&#39;s mode (see
+</span><span class="">  293: above), or else C&lt;$Sub::Private::config{mode}&gt;, to equal C&lt;&#39;enforce&#39;&gt;;
+</span><span class="">  294: croaks otherwise.
+</span><span class="">  295: 
+</span><span class="">  296: =head3 Arguments
+</span><span class="">  297: 
+</span><span class="">  298: =over 4
+</span><span class="">  299: 
+</span><span class="">  300: =item C&lt;\%options&gt; (optional)
 </span><span class="">  301: 
-</span><span class="">  302:     # Declarative form (enforce mode only):
-</span><span class="">  303:     {
-</span><span class="">  304:         subs =&gt; {
-</span><span class="">  305:             type     =&gt; &#39;array&#39;,
-</span><span class="">  306:             optional =&gt; 1,
-</span><span class="">  307:             element  =&gt; {
-</span><span class="">  308:                 type  =&gt; &#39;string&#39;,
-</span><span class="">  309:                 regex =&gt; qr/\A[_a-zA-Z]\w*\z/,
-</span><span class="">  310:             },
-</span><span class="">  311:         }
-</span><span class="">  312:     }
-</span><span class="">  313: 
-</span><span class="">  314: =head4 Output
-</span><span class="">  315: 
-</span><span class="">  316:     { type =&gt; &#39;string&#39; }    # returns the class name &#39;Sub::Private&#39;
-</span><span class="">  317: 
-</span><span class="">  318: =head3 MESSAGES
-</span><span class="">  319: 
-</span><span class="">  320:     Message                                              Meaning / Action
-</span><span class="">  321:     ---------------------------------------------------  -----------------------------------------------
-</span><span class="">  322:     &quot;Sub::Private-&gt;import: declarative form requires     use Sub::Private qw(...) was called while
-</span><span class="">  323:      mode =&gt; &#39;enforce&#39;&quot;                                  $config{mode} is not &#39;enforce&#39;.  Set
-</span><span class="">  324:                                                          $config{mode} = &#39;enforce&#39; in a BEGIN block
-</span><span class="">  325:                                                          before &quot;use Sub::Private&quot;.
+</span><span class="">  302: A hash reference, before any sub names.  The only key allowed is
+</span><span class="">  303: C&lt;mode&gt;, whose value must be C&lt;&#39;namespace&#39;&gt; or C&lt;&#39;enforce&#39;&gt;.
+</span><span class="">  304: 
+</span><span class="">  305: =item C&lt;@subs&gt; (optional)
+</span><span class="">  306: 
+</span><span class="">  307: Zero or more Perl sub names.  Each must be a defined, non-reference scalar
+</span><span class="">  308: matching C&lt;/\A[_a-zA-Z]\w*\z/&gt;.  C&lt;undef&gt;, references, empty strings, and
+</span><span class="">  309: names starting with a digit or containing hyphens are all rejected.
+</span><span class="">  310: 
+</span><span class="">  311: =back
+</span><span class="">  312: 
+</span><span class="">  313: =head3 Returns
+</span><span class="">  314: 
+</span><span class="">  315: The class name (C&lt;&#39;Sub::Private&#39;&gt;) as a plain string in all cases.
+</span><span class="">  316: 
+</span><span class="">  317: =head3 Side effects
+</span><span class="">  318: 
+</span><span class="">  319: =over 4
+</span><span class="">  320: 
+</span><span class="">  321: =item * With C&lt;\%options&gt;: records the mode for the calling package.  A
+</span><span class="">  322: later call from the same package replaces it.
+</span><span class="">  323: 
+</span><span class="">  324: =item * Pre-CHECK: appends C&lt;[$owner_pkg, $sub_name]&gt; pairs to the
+</span><span class="">  325: internal C&lt;@_pending&gt; list.
 </span><span class="">  326: 
-</span><span class="">  327:     &quot;Sub::Private-&gt;import: &#39;NAME&#39; is not a valid         The sub name failed the identifier regex.
-</span><span class="">  328:      Perl identifier&quot;                                    Check for typos, hyphens, leading digits,
-</span><span class="">  329:                                                          undef, or reference values in the import list.
-</span><span class="">  330: 
-</span><span class="">  331:     &quot;Sub::Private: PKG::NAME is not defined&quot;             The named sub was not found in the stash at
-</span><span class="">  332:                                                          wrap time.  Define the sub before import()
-</span><span class="">  333:                                                          runs, before CHECK fires, or (after CHECK)
-</span><span class="">  334:                                                          before the end of the enclosing scope.
-</span><span class="">  335:                                                          After CHECK, the location reported is the
-</span><span class="">  336:                                                          &quot;use Sub::Private&quot; line.
-</span><span class="">  337: 
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  338: =cut
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  339: 
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  340: sub import {
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">341 → 351 → 364</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">341 → 351 → 0</span></span>  341: 	my ($class, @subs) = @_;
-</span><span class="">  342: 
-</span><span class="">  343: 	# No sub names: the :Private attribute is always available via UNIVERSAL.
-</span><span class="">  344: 	return set_return($class, { type =&gt; &#39;string&#39; }) unless @subs;
+</span><span class="">  327: =item * Post-CHECK, during compilation: installs wrapper closures in the
+</span><span class="">  328: calling package&#39;s stash when the enclosing scope has been compiled.
+</span><span class="">  329: 
+</span><span class="">  330: =item * Post-CHECK, at run time: installs wrapper closures directly in the
+</span><span class="">  331: calling package&#39;s stash.
+</span><span class="">  332: 
+</span><span class="">  333: =back
+</span><span class="">  334: 
+</span><span class="">  335: =head3 Example
+</span><span class="">  336: 
+</span><span class="">  337:     BEGIN { $Sub::Private::config{mode} = &#39;enforce&#39; }
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  338:     package MyClass;
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  339:     use Sub::Private qw(_helper _init);
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  340: 
+</span><span class="">  341:     sub new     { bless {}, shift }
+</span><span class="">  342:     sub _helper { ... }    # wrapped at CHECK time
+</span><span class="">  343:     sub _init   { ... }    # wrapped at CHECK time
+</span><span class="">  344:     sub run     { my $s = shift; $s-&gt;_helper; $s-&gt;_init }
 </span><span class="">  345: 
-</span><span class="">  346: 	# Declarative form is only meaningful in enforce mode.
-</span><span class="">  347: 	croak &quot;$SELF-&gt;import: declarative form requires mode =&gt; &#39;$MODE_ENFORCE&#39;&quot;
-</span><span class="">  348: 		if $config{$KEY_MODE} ne $MODE_ENFORCE;
-</span><span class="">  349: 
-</span><span class="">  350: 	# Validate every name before touching the stash (fail-fast, all-or-nothing).
-</span><span class="">  351: 	for my $sub_name (@subs) {
-</span><span class="">  352: 		# Coerce invalid types (undef, ref) to empty string before schema check.
-</span><span class="">  353: 		my $check = (defined $sub_name &amp;&amp; !ref $sub_name) ? $sub_name : q{};
-</span><span class="">  354: 		eval {
-</span><span class="">  355: 			validate_strict(
-</span><span class="">  356: 				schema =&gt; $SUB_NAME_SCHEMA,
-</span><span class="">  357: 				input  =&gt; { name =&gt; $check },
-</span><span class="">  358: 			);
-</span><span class="">  359: 		};
-</span><span class="">  360: 		croak &quot;$SELF-&gt;import: &#39;$check&#39; is not a valid Perl identifier&quot; if $@;
-</span><span class="">  361: 	}
-</span><span class="">  362: 
-</span><span class="">  363: 	# Schedule or immediately apply wrapping depending on compile phase.
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">364 → 365 → 385</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">364 → 365 → 0</span></span>  364: 	my ($owner_pkg, $file, $line) = caller;
-</span><span class="">  365: 	if ($_post_check) {
-</span><span class="">  366: 		if (defined $^S) {
-</span><span class="">  367: 			# Called at run time: the subs already exist, wrap them now.
-</span><span class="">  368: 			_process_one($owner_pkg, $_) for @subs;
-</span><span class="">  369: 		} else {
-</span><span class="">  370: 			# &quot;use&quot; after CHECK (e.g. a run-time require): the subs below the
-</span><span class="">  371: 			# &quot;use&quot; line are not compiled yet, so wrap them when the
-</span><span class="">  372: 			# enclosing scope has been compiled.
-</span><span class="">  373: 			B::Hooks::EndOfScope::on_scope_end(sub {
-</span><span class="">  374: 				# Report errors at the &quot;use&quot; line, not inside the hook.
-</span><span class="">  375: 				eval { _process_one($owner_pkg, $_) for @subs; 1 } or do {
-</span><span class="">  376: 					(my $err = $@) =~ s/ at .+? line \d+\.?\n\z//s;
-</span><span class="">  377: 					die &quot;$err at $file line $line.\n&quot;;
-</span><span class="">  378: 				};
-</span><span class="">  379: 			});
-</span><span class="">  380: 		}
-</span><span class="">  381: 	} else {
-</span><span class="">  382: 		push @_pending, [ $owner_pkg, $_ ] for @subs;
-</span><span class="">  383: 	}
-</span><span class="">  384: 
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">385 → 385 → 0</span></span>  385: 	return set_return($class, { type =&gt; &#39;string&#39; });
-</span><span class="">  386: }
-</span><span class="">  387: 
-</span><span class="">  388: # -------------------------------------------------------------------
-</span><span class="">  389: # CHECK-TIME PROCESSING
-</span><span class="">  390: # -------------------------------------------------------------------
-</span><span class="">  391: 
-</span><span class="">  392: # Process all declarative wraps queued during import().
-</span><span class="">  393: # After this fires, $_post_check=1 so future import() calls wrap without it.
-</span><span class="">  394: # When this module is loaded after CHECK the block cannot run, which is
-</span><span class="">  395: # expected; silence &quot;Too late to run CHECK block&quot;.
-</span><span class="">  396: {
-</span><span class="">  397: 	no warnings &#39;void&#39;;
-</span><span class="">  398: 	CHECK {
-</span><span class="">  399: 		$_post_check = 1;
-</span><span class="">  400: 		_process_one(@$_) for @_pending;
-</span><span class="">  401: 		@_pending = ();
-</span><span class="">  402: 	}
-</span><span class="">  403: }
-</span><span class="">  404: 
-</span><span class="">  405: # -------------------------------------------------------------------
-</span><span class="">  406: # PRIVATE SUBROUTINES
-</span><span class="">  407: # -------------------------------------------------------------------
-</span><span class="">  408: 
-</span><span class="">  409: # _assert_known_mode
-</span><span class="">  410: # Purpose      : Validate that $config{mode} is a recognised string.
-</span><span class="">  411: # Entry        : $mode -- the value to validate
-</span><span class="">  412: # Exit status  : Returns normally for &#39;namespace&#39; or &#39;enforce&#39;; croaks
-</span><span class="">  413: #                with a descriptive message for any other value.
-</span><span class="">  414: sub _assert_known_mode {
-</span><span class="">  415: 	my ($mode) = @_;
-</span><span class="">  416: 	return if $mode eq $MODE_NAMESPACE || $mode eq $MODE_ENFORCE;
-</span><span class="">  417: 	croak &quot;$SELF: unknown mode &#39;$mode&#39;&quot;
-</span><span class="">  418: 		. &quot; -- use &#39;$MODE_NAMESPACE&#39; or &#39;$MODE_ENFORCE&#39;&quot;;
-</span><span class="">  419: }
-</span><span class="">  420: 
-</span><span class="">  421: # _process_one
-</span><span class="">  422: # Purpose      : Look up a named sub in a package stash and install a wrapper.
-</span><span class="">  423: # Entry        : $owner_pkg -- the package that declared the sub
-</span><span class="">  424: #                $sub_name  -- the unqualified sub name to wrap
-</span><span class="">  425: # Exit status  : Returns normally; the stash entry is replaced with a wrapper.
-</span><span class="">  426: # Side effects : Modifies the package stash for $owner_pkg.
-</span><span class="">  427: # Notes        : Guarded by _assert_private_caller -- external calls croak.
-</span><span class="">  428: sub _process_one {
-</span><span class="">  429: 	my ($owner_pkg, $sub_name) = @_;
-</span><span class="">  430: 
-</span><span class="">  431: 	# Guard: only Sub::Private itself may call this.
-</span><span class="">  432: 	_assert_private_caller(&#39;_process_one&#39;)
-</span><span class="">  433: 		unless $BYPASS || ($config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE});
-</span><span class="">  434: 
-</span><span class="">  435: 	no strict &#39;refs&#39;;	## no critic (ProhibitNoStrict)
-</span><span class="">  436: 
-</span><span class="">  437: 	# Ensure the target sub exists in the stash before wrapping.
-</span><span class="">  438: 	croak &quot;$SELF: ${owner_pkg}::${sub_name} is not defined&quot;
-</span><span class="">  439: 		unless defined &amp;{&quot;${owner_pkg}::${sub_name}&quot;};
-</span><span class="">  440: 
-</span><span class="">  441: 	my $code = \&amp;{&quot;${owner_pkg}::${sub_name}&quot;};
-</span><span class="">  442: 
-</span><span class="">  443: 	# Replace the stash entry with the enforcement wrapper.
-</span><span class="">  444: 	no warnings &#39;redefine&#39;;
-</span><span class="">  445: 	*{&quot;${owner_pkg}::${sub_name}&quot;} = _wrap($owner_pkg, $sub_name, $code);
-</span><span class="">  446: 	return;
-</span><span class="">  447: }
-</span><span class="">  448: 
-</span><span class="">  449: # _wrap
-</span><span class="">  450: # Purpose      : Build an enforcement wrapper closure around a coderef.
-</span><span class="">  451: # Entry        : $owner_pkg -- the package that owns the private sub
-</span><span class="">  452: #                $sub_name  -- the unqualified sub name (for error messages)
-</span><span class="">  453: #                $code      -- the original coderef to delegate to
-</span><span class="">  454: # Exit status  : Returns a new coderef that enforces the private-access rule.
-</span><span class="">  455: # Side effects : none (variables captured by closure)
-</span><span class="">  456: # Notes        : goto &amp;$code is used rather than $code-&gt;(@_) so that caller()
-</span><span class="">  457: #                inside the private sub sees the real caller, not Sub::Private.
-</span><span class="">  458: #                This is load-bearing: removing it breaks tests that inspect
-</span><span class="">  459: #                caller() inside a private sub.  Guarded by _assert_private_caller.
-</span><span class="">  460: sub _wrap {
-</span><span class="">  461: 	my ($owner_pkg, $sub_name, $code) = @_;
-</span><span class="">  462: 
-</span><span class="">  463: 	# Guard: only Sub::Private itself may call this.
-</span><span class="">  464: 	_assert_private_caller(&#39;_wrap&#39;)
-</span><span class="">  465: 		unless $BYPASS || ($config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE});
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  466: 
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  467: 	# Capture the three args in the closure; the wrapper has no mutable state.
-</span><span class="">  468: 	return sub {
-</span><span class="">  469: 		Sub::Private::_check_access($owner_pkg, $sub_name);
-</span><span class="">  470: 		goto &amp;$code;    ## no critic (ControlStructures::ProhibitGoto)
-</span><span class="">  471: 	};
-</span><span class="">  472: }
-</span><span class="">  473: 
-</span><span class="">  474: # _check_access
-</span><span class="">  475: # Purpose      : Enforce the private-access invariant at call time.
-</span><span class="">  476: # Entry        : $owner_pkg -- the package that owns the private sub
-</span><span class="">  477: #                $sub_name  -- unqualified sub name (for error messages)
-</span><span class="">  478: # Exit status  : Returns normally if the immediate non-Sub::Private caller is
-</span><span class="">  479: #                the owner package.  Croaks if any other package is found first.
-</span><span class="">  480: # Notes        : Unlike Sub::Protected there is NO -&gt;isa check.  Private means
-</span><span class="">  481: #                the owner package ONLY; subclasses are blocked.
-</span><span class="">  482: #                The stack walk skips Sub::Private frames so the wrapper is
-</span><span class="">  483: #                transparent to the check.
-</span><span class="">  484: sub _check_access {
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">485 → 493 → 0</span></span>  485: 	my ($owner_pkg, $sub_name) = @_;
-</span><span class="">  486: 
-</span><span class="">  487: 	# Fast bypass paths: either condition alone disables all checks (OR logic).
-</span><span class="">  488: 	return if $BYPASS;
-</span><span class="">  489: 	return if $config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE};
-</span><span class="">  490: 
-</span><span class="">  491: 	# Walk the call stack, skipping Sub::Private wrapper frames.
-</span><span class="">  492: 	my $frame = 0;
-</span><span class="">  493: 	while (1) {
-</span><span class="">  494: 		my $pkg = (caller($frame))[0];
-</span><span class="">  495: 
-</span><span class="">  496: 		# Reached the bottom of the stack with no valid caller found.
-</span><span class="">  497: 		if (!defined $pkg) {
-</span><span class="">  498: 			croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
-</span><span class="">  499: 				. &#39; and cannot be called from outside any package&#39;;
-</span><span class="">  500: 		}
-</span><span class="">  501: 
-</span><span class="">  502: 		# Skip any Sub::Private frames (e.g., the wrapper closure itself).
-</span><span class="">  503: 		$frame++, next if $pkg eq $SELF;
-</span><span class="">  504: 
-</span><span class="">  505: 		# The first non-Sub::Private caller must be the owner; everyone else
-</span><span class="">  506: 		# is blocked -- no isa allowance, unlike Sub::Protected.
-</span><span class="">  507: 		return if $pkg eq $owner_pkg;
-</span><span class="">  508: 		croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
-</span><span class="">  509: 			. &quot; and cannot be called from ${pkg}&quot;;
-</span><span class="">  510: 	}
-</span><span class="">  511: }
+</span><span class="">  346: Enforce mode for one package, leaving every other package alone:
+</span><span class="">  347: 
+</span><span class="">  348:     package MyClass;
+</span><span class="">  349:     use Sub::Private { mode =&gt; &#39;enforce&#39; };
+</span><span class="">  350: 
+</span><span class="">  351:     sub new        { bless {}, shift }
+</span><span class="">  352:     sub _helper :Private { ... }    # wrapped at CHECK time
+</span><span class="">  353:     sub run        { (shift)-&gt;_helper }
+</span><span class="">  354: 
+</span><span class="">  355: =head3 API SPECIFICATION
+</span><span class="">  356: 
+</span><span class="">  357: =head4 Input
+</span><span class="">  358: 
+</span><span class="">  359:     # No-argument form: always valid.
+</span><span class="">  360:     Sub::Private-&gt;import();
+</span><span class="">  361: 
+</span><span class="">  362:     # Options, first in the list (optional):
+</span><span class="">  363:     {
+</span><span class="">  364:         options =&gt; {
+</span><span class="">  365:             type     =&gt; &#39;hashref&#39;,
+</span><span class="">  366:             optional =&gt; 1,
+</span><span class="">  367:             schema   =&gt; {
+</span><span class="">  368:                 mode =&gt; {
+</span><span class="">  369:                     type     =&gt; &#39;string&#39;,
+</span><span class="">  370:                     memberof =&gt; [ &#39;namespace&#39;, &#39;enforce&#39; ],
+</span><span class="">  371:                     optional =&gt; 1,
+</span><span class="">  372:                 },
+</span><span class="">  373:             },
+</span><span class="">  374:         }
+</span><span class="">  375:     }
+</span><span class="">  376: 
+</span><span class="">  377:     # Declarative form (enforce mode only):
+</span><span class="">  378:     {
+</span><span class="">  379:         subs =&gt; {
+</span><span class="">  380:             type     =&gt; &#39;array&#39;,
+</span><span class="">  381:             optional =&gt; 1,
+</span><span class="">  382:             element  =&gt; {
+</span><span class="">  383:                 type  =&gt; &#39;string&#39;,
+</span><span class="">  384:                 regex =&gt; qr/\A[_a-zA-Z]\w*\z/,
+</span><span class="">  385:             },
+</span><span class="">  386:         }
+</span><span class="">  387:     }
+</span><span class="">  388: 
+</span><span class="">  389: =head4 Output
+</span><span class="">  390: 
+</span><span class="">  391:     { type =&gt; &#39;string&#39; }    # returns the class name &#39;Sub::Private&#39;
+</span><span class="">  392: 
+</span><span class="">  393: =head3 MESSAGES
+</span><span class="">  394: 
+</span><span class="">  395:     Message                                              Meaning / Action
+</span><span class="">  396:     ---------------------------------------------------  -----------------------------------------------
+</span><span class="">  397:     &quot;Sub::Private-&gt;import: declarative form requires     use Sub::Private qw(...) was called while
+</span><span class="">  398:      mode =&gt; &#39;enforce&#39;&quot;                                  the package&#39;s mode is not &#39;enforce&#39;.  Use
+</span><span class="">  399:                                                          use Sub::Private { mode =&gt; &#39;enforce&#39; },
+</span><span class="">  400:                                                          qw(...) instead.
+</span><span class="">  401: 
+</span><span class="">  402:     &quot;Sub::Private-&gt;import: unknown option &#39;KEY&#39;&quot;         The options hash has a key other than mode.
+</span><span class="">  403: 
+</span><span class="">  404:     &quot;Sub::Private: unknown mode &#39;MODE&#39; -- use            The mode option, or $config{mode}, is not
+</span><span class="">  405:      &#39;namespace&#39; or &#39;enforce&#39;&quot;                           one of the two modes.
+</span><span class="">  406: 
+</span><span class="">  407:     &quot;Sub::Private-&gt;import: &#39;NAME&#39; is not a valid         The sub name failed the identifier regex.
+</span><span class="">  408:      Perl identifier&quot;                                    Check for typos, hyphens, leading digits,
+</span><span class="">  409:                                                          undef, or reference values in the import list.
+</span><span class="">  410: 
+</span><span class="">  411:     &quot;Sub::Private: PKG::NAME is not defined&quot;             The named sub was not found in the stash at
+</span><span class="">  412:                                                          wrap time.  Define the sub before import()
+</span><span class="">  413:                                                          runs, before CHECK fires, or (after CHECK)
+</span><span class="">  414:                                                          before the end of the enclosing scope.
+</span><span class="">  415:                                                          After CHECK, the location reported is the
+</span><span class="">  416:                                                          &quot;use Sub::Private&quot; line.
+</span><span class="">  417: 
+</span><span class="">  418: =cut
+</span><span class="">  419: 
+</span><span class="">  420: sub import {
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">421 → 435 → 448</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">421 → 435 → 0</span></span>  421: 	my ($class, @subs) = @_;
+</span><span class="">  422: 	my ($owner_pkg, $file, $line) = caller;
+</span><span class="">  423: 
+</span><span class="">  424: 	# A leading hashref holds options for the calling package only.
+</span><span class="">  425: 	_set_package_options($owner_pkg, shift @subs) if ref($subs[0]) eq &#39;HASH&#39;;
+</span><span class="">  426: 
+</span><span class="">  427: 	# No sub names: the :Private attribute is always available via UNIVERSAL.
+</span><span class="">  428: 	return set_return($class, { type =&gt; &#39;string&#39; }) unless @subs;
+</span><span class="">  429: 
+</span><span class="">  430: 	# Declarative form is only meaningful in enforce mode.
+</span><span class="">  431: 	croak &quot;$SELF-&gt;import: declarative form requires mode =&gt; &#39;$MODE_ENFORCE&#39;&quot;
+</span><span class="">  432: 		if _mode_for($owner_pkg) ne $MODE_ENFORCE;
+</span><span class="">  433: 
+</span><span class="">  434: 	# Validate every name before touching the stash (fail-fast, all-or-nothing).
+</span><span class="">  435: 	for my $sub_name (@subs) {
+</span><span class="">  436: 		# Coerce invalid types (undef, ref) to empty string before schema check.
+</span><span class="">  437: 		my $check = (defined $sub_name &amp;&amp; !ref $sub_name) ? $sub_name : q{};
+</span><span class="">  438: 		eval {
+</span><span class="">  439: 			validate_strict(
+</span><span class="">  440: 				schema =&gt; $SUB_NAME_SCHEMA,
+</span><span class="">  441: 				input  =&gt; { name =&gt; $check },
+</span><span class="">  442: 			);
+</span><span class="">  443: 		};
+</span><span class="">  444: 		croak &quot;$SELF-&gt;import: &#39;$check&#39; is not a valid Perl identifier&quot; if $@;
+</span><span class="">  445: 	}
+</span><span class="">  446: 
+</span><span class="">  447: 	# Schedule or immediately apply wrapping depending on compile phase.
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">448 → 448 → 468</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">448 → 448 → 0</span></span>  448: 	if ($_post_check) {
+</span><span class="">  449: 		if (defined $^S) {
+</span><span class="">  450: 			# Called at run time: the subs already exist, wrap them now.
+</span><span class="">  451: 			_process_one($owner_pkg, $_) for @subs;
+</span><span class="">  452: 		} else {
+</span><span class="">  453: 			# &quot;use&quot; after CHECK (e.g. a run-time require): the subs below the
+</span><span class="">  454: 			# &quot;use&quot; line are not compiled yet, so wrap them when the
+</span><span class="">  455: 			# enclosing scope has been compiled.
+</span><span class="">  456: 			B::Hooks::EndOfScope::on_scope_end(sub {
+</span><span class="">  457: 				# Report errors at the &quot;use&quot; line, not inside the hook.
+</span><span class="">  458: 				eval { _process_one($owner_pkg, $_) for @subs; 1 } or do {
+</span><span class="">  459: 					(my $err = $@) =~ s/ at .+? line \d+\.?\n\z//s;
+</span><span class="">  460: 					die &quot;$err at $file line $line.\n&quot;;
+</span><span class="">  461: 				};
+</span><span class="">  462: 			});
+</span><span class="">  463: 		}
+</span><span class="">  464: 	} else {
+</span><span class="">  465: 		push @_pending, [ $owner_pkg, $_ ] for @subs;
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  466: 	}
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  467: 
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">468 → 468 → 0</span></span>  468: 	return set_return($class, { type =&gt; &#39;string&#39; });
+</span><span class="">  469: }
+</span><span class="">  470: 
+</span><span class="">  471: # -------------------------------------------------------------------
+</span><span class="">  472: # CHECK-TIME PROCESSING
+</span><span class="">  473: # -------------------------------------------------------------------
+</span><span class="">  474: 
+</span><span class="">  475: # Process all declarative wraps queued during import().
+</span><span class="">  476: # After this fires, $_post_check=1 so future import() calls wrap without it.
+</span><span class="">  477: # When this module is loaded after CHECK the block cannot run, which is
+</span><span class="">  478: # expected; silence &quot;Too late to run CHECK block&quot;.
+</span><span class="">  479: {
+</span><span class="">  480: 	no warnings &#39;void&#39;;
+</span><span class="">  481: 	CHECK {
+</span><span class="">  482: 		$_post_check = 1;
+</span><span class="">  483: 		_process_one(@$_) for @_pending;
+</span><span class="">  484: 		@_pending = ();
+</span><span class="">  485: 	}
+</span><span class="">  486: }
+</span><span class="">  487: 
+</span><span class="">  488: # -------------------------------------------------------------------
+</span><span class="">  489: # PRIVATE SUBROUTINES
+</span><span class="">  490: # -------------------------------------------------------------------
+</span><span class="">  491: 
+</span><span class="">  492: # _assert_known_mode
+</span><span class="">  493: # Purpose      : Validate that $config{mode} is a recognised string.
+</span><span class="">  494: # Entry        : $mode -- the value to validate
+</span><span class="">  495: # Exit status  : Returns normally for &#39;namespace&#39; or &#39;enforce&#39;; croaks
+</span><span class="">  496: #                with a descriptive message for any other value.
+</span><span class="">  497: sub _assert_known_mode {
+</span><span class="">  498: 	my ($mode) = @_;
+</span><span class="">  499: 	return if $mode eq $MODE_NAMESPACE || $mode eq $MODE_ENFORCE;
+</span><span class="">  500: 	croak &quot;$SELF: unknown mode &#39;$mode&#39;&quot;
+</span><span class="">  501: 		. &quot; -- use &#39;$MODE_NAMESPACE&#39; or &#39;$MODE_ENFORCE&#39;&quot;;
+</span><span class="">  502: }
+</span><span class="">  503: 
+</span><span class="">  504: # _mode_for
+</span><span class="">  505: # Purpose      : Find the mode that applies to the subs of a package.
+</span><span class="">  506: # Entry        : $pkg -- a package name
+</span><span class="">  507: # Exit status  : Returns the mode the package chose with
+</span><span class="">  508: #                &quot;use Sub::Private { mode =&gt; ... }&quot;, or else $config{mode}.
+</span><span class="">  509: # Side effects : None.
+</span><span class="">  510: sub _mode_for {
+</span><span class="">  511: 	my ($pkg) = @_;
 </span><span class="">  512: 
-</span><span class="">  513: # _assert_private_caller
-</span><span class="">  514: # Purpose      : Croak if a guarded private method was called from outside
-</span><span class="">  515: #                Sub::Private.
-</span><span class="">  516: # Entry        : $method_name -- the guarded method name (for error messages)
-</span><span class="">  517: # Exit status  : Returns normally if caller(1) is Sub::Private; croaks
-</span><span class="">  518: #                otherwise with a descriptive message.
-</span><span class="">  519: # Notes        : caller(1) is the package that called the guarded method,
-</span><span class="">  520: #                which in turn called this function.
-</span><span class="">  521: sub _assert_private_caller {
-</span><span class="">  522: 	my ($method_name) = @_;
-</span><span class="">  523: 
-</span><span class="">  524: 	# caller(1): the package one frame above the guarded method.
-</span><span class="">  525: 	my $caller = (caller(1))[0] // q{};
+</span><span class="">  513: 	return $_package_mode{$pkg} // $config{$KEY_MODE};
+</span><span class="">  514: }
+</span><span class="">  515: 
+</span><span class="">  516: # _set_package_options
+</span><span class="">  517: # Purpose      : Record the options a package gave in its &quot;use&quot; line.
+</span><span class="">  518: # Entry        : $pkg     -- the package that called import()
+</span><span class="">  519: #                $options -- hashref; the only key allowed is &quot;mode&quot;
+</span><span class="">  520: # Exit status  : Returns normally; croaks on an unknown key or mode.
+</span><span class="">  521: # Side effects : Sets the package&#39;s entry in %_package_mode.  The global
+</span><span class="">  522: #                $config{mode} is not touched, so other packages are not
+</span><span class="">  523: #                affected.
+</span><span class="">  524: sub _set_package_options {
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">525 → 528 → 531</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">525 → 528 → 0</span></span>  525: 	my ($pkg, $options) = @_;
 </span><span class="">  526: 
-</span><span class="">  527: 	# Only calls originating within Sub::Private itself are permitted.
-</span><span class="">  528: 	return if $caller eq $SELF;
-</span><span class="">  529: 
-</span><span class="">  530: 	croak &quot;${method_name}() is a private method of $SELF&quot;
-</span><span class="">  531: 		. &quot; and cannot be called from ${caller}&quot;;
-</span><span class="">  532: }
-</span><span class="">  533: 
-</span><span class="">  534: 1;
-</span><span class="">  535: 
-</span><span class="">  536: __END__
-</span><span class="">  537: 
-</span><span class="">  538: =head1 PUBLIC VARIABLES
-</span><span class="">  539: 
-</span><span class="">  540: =head2 C&lt;$BYPASS&gt;
-</span><span class="">  541: 
-</span><span class="">  542: Set to a true value to disable all access checks (enforce mode only).
-</span><span class="">  543: Use C&lt;local&gt; in tests; see L&lt;/Bypass for testing&gt;.
-</span><span class="">  544: 
-</span><span class="">  545: =head2 C&lt;%config&gt;
-</span><span class="">  546: 
-</span><span class="">  547: Module-level configuration hash.  Supported keys:
+</span><span class="">  527: 	# Check every key before changing anything (all-or-nothing).
+</span><span class="">  528: 	for my $key (sort keys %{$options}) {
+</span><span class="">  529: 		croak &quot;$SELF-&gt;import: unknown option &#39;$key&#39;&quot; if $key ne $KEY_MODE;
+</span><span class="">  530: 	}
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">531 → 531 → 536</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">531 → 531 → 0</span></span>  531: 	if (exists $options-&gt;{$KEY_MODE}) {
+</span><span class="">  532: 		my $mode = $options-&gt;{$KEY_MODE} // q{};
+</span><span class="">  533: 		_assert_known_mode($mode);
+</span><span class="">  534: 		$_package_mode{$pkg} = $mode;
+</span><span class="">  535: 	}
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">536 → 536 → 0</span></span>  536: 	return;
+</span><span class="">  537: }
+</span><span class="">  538: 
+</span><span class="">  539: # _process_one
+</span><span class="">  540: # Purpose      : Look up a named sub in a package stash and install a wrapper.
+</span><span class="">  541: # Entry        : $owner_pkg -- the package that declared the sub
+</span><span class="">  542: #                $sub_name  -- the unqualified sub name to wrap
+</span><span class="">  543: # Exit status  : Returns normally; the stash entry is replaced with a wrapper.
+</span><span class="">  544: # Side effects : Modifies the package stash for $owner_pkg.
+</span><span class="">  545: # Notes        : Guarded by _assert_private_caller -- external calls croak.
+</span><span class="">  546: sub _process_one {
+</span><span class="">  547: 	my ($owner_pkg, $sub_name) = @_;
 </span><span class="">  548: 
-</span><span class="">  549: =over 4
-</span><span class="">  550: 
-</span><span class="">  551: =item C&lt;mode&gt;
+</span><span class="">  549: 	# Guard: only Sub::Private itself may call this.
+</span><span class="">  550: 	_assert_private_caller(&#39;_process_one&#39;)
+</span><span class="">  551: 		unless $BYPASS || ($config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE});
 </span><span class="">  552: 
-</span><span class="">  553: C&lt;&#39;namespace&#39;&gt; (default) or C&lt;&#39;enforce&#39;&gt;.  Must be set in a C&lt;BEGIN&gt;
-</span><span class="">  554: block before C&lt;use Sub::Private&gt; to take effect at C&lt;CHECK&gt; time.
-</span><span class="">  555: 
-</span><span class="">  556: =item C&lt;harness_bypass&gt;
-</span><span class="">  557: 
-</span><span class="">  558: When true (default), access checks are skipped whenever
-</span><span class="">  559: C&lt;$ENV{HARNESS_ACTIVE}&gt; is set.  Set to 0 to test enforcement under
-</span><span class="">  560: C&lt;prove&gt;.
-</span><span class="">  561: 
-</span><span class="">  562: =back
-</span><span class="">  563: 
-</span><span class="">  564: =head1 KNOWN LIMITATIONS
-</span><span class="">  565: 
-</span><span class="">  566: =over 4
-</span><span class="">  567: 
-</span><span class="">  568: =item C&lt;namespace&gt; mode: OO dispatch fails for private subs
-</span><span class="">  569: 
-</span><span class="">  570: C&lt;$self-&gt;_helper&gt; from within the owner package fails because method
-</span><span class="">  571: dispatch uses the symbol table at runtime, which no longer contains the
-</span><span class="">  572: entry.  Use C&lt;enforce&gt; mode for OO classes.
-</span><span class="">  573: 
-</span><span class="">  574: =item C&lt;enforce&gt; mode: runtime-only
-</span><span class="">  575: 
-</span><span class="">  576: Checks are runtime only; there is no compile-time enforcement.
-</span><span class="">  577: 
-</span><span class="">  578: =item C&lt;enforce&gt; mode: raw coderef bypass
-</span><span class="">  579: 
-</span><span class="">  580: A raw code reference obtained B&lt;before&gt; wrapping (via C&lt;can()&gt; or
-</span><span class="">  581: C&lt;\&amp;Foo::_helper&gt;) bypasses the check.  The attribute form makes this
-</span><span class="">  582: hard because wrapping happens at CHECK time.  When the package is loaded
-</span><span class="">  583: after CHECK, wrapping happens at the end of the enclosing scope, so a
-</span><span class="">  584: C&lt;BEGIN&gt; block earlier in the same file could still take a reference to
-</span><span class="">  585: the unwrapped sub.
-</span><span class="">  586: 
-</span><span class="">  587: =item C&lt;enforce&gt; mode: C&lt;can()&gt; leaks private method existence
-</span><span class="">  588: 
-</span><span class="">  589: In C&lt;enforce&gt; mode the original sub is replaced by a wrapper closure, so
-</span><span class="">  590: C&lt;&lt; -&gt;can(&#39;_helper&#39;) &gt;&gt; returns the wrapper (a true value) even to callers outside
-</span><span class="">  591: the owner package.  In C&lt;namespace&gt; mode the stash entry is deleted entirely,
-</span><span class="">  592: so C&lt;&lt; -&gt;can &gt;&gt; correctly returns C&lt;undef&gt;.  A future release may inject a
-</span><span class="">  593: caller-aware C&lt;can()&gt; override into each class that uses C&lt;enforce&gt; mode,
-</span><span class="">  594: returning the coderef only when the caller is the owner package and C&lt;undef&gt;
-</span><span class="">  595: for everyone else.
-</span><span class="">  596: 
-</span><span class="">  597: =item UNIVERSAL namespace pollution
-</span><span class="">  598: 
-</span><span class="">  599: The C&lt;:Private&gt; attribute is installed in C&lt;UNIVERSAL&gt;, which is
-</span><span class="">  600: intentional (any package can use it after a single C&lt;use&gt;), but it does
-</span><span class="">  601: introduce C&lt;UNIVERSAL::Private&gt; into the global namespace.
-</span><span class="">  602: 
-</span><span class="">  603: =back
+</span><span class="">  553: 	no strict &#39;refs&#39;;	## no critic (ProhibitNoStrict)
+</span><span class="">  554: 
+</span><span class="">  555: 	# Ensure the target sub exists in the stash before wrapping.
+</span><span class="">  556: 	croak &quot;$SELF: ${owner_pkg}::${sub_name} is not defined&quot;
+</span><span class="">  557: 		unless defined &amp;{&quot;${owner_pkg}::${sub_name}&quot;};
+</span><span class="">  558: 
+</span><span class="">  559: 	my $code = \&amp;{&quot;${owner_pkg}::${sub_name}&quot;};
+</span><span class="">  560: 
+</span><span class="">  561: 	# Replace the stash entry with the enforcement wrapper.
+</span><span class="">  562: 	no warnings &#39;redefine&#39;;
+</span><span class="">  563: 	*{&quot;${owner_pkg}::${sub_name}&quot;} = _wrap($owner_pkg, $sub_name, $code);
+</span><span class="">  564: 	return;
+</span><span class="">  565: }
+</span><span class="">  566: 
+</span><span class="">  567: # _wrap
+</span><span class="">  568: # Purpose      : Build an enforcement wrapper closure around a coderef.
+</span><span class="">  569: # Entry        : $owner_pkg -- the package that owns the private sub
+</span><span class="">  570: #                $sub_name  -- the unqualified sub name (for error messages)
+</span><span class="">  571: #                $code      -- the original coderef to delegate to
+</span><span class="">  572: # Exit status  : Returns a new coderef that enforces the private-access rule.
+</span><span class="">  573: # Side effects : none (variables captured by closure)
+</span><span class="">  574: # Notes        : goto &amp;$code is used rather than $code-&gt;(@_) so that caller()
+</span><span class="">  575: #                inside the private sub sees the real caller, not Sub::Private.
+</span><span class="">  576: #                This is load-bearing: removing it breaks tests that inspect
+</span><span class="">  577: #                caller() inside a private sub.  Guarded by _assert_private_caller.
+</span><span class="">  578: sub _wrap {
+</span><span class="">  579: 	my ($owner_pkg, $sub_name, $code) = @_;
+</span><span class="">  580: 
+</span><span class="">  581: 	# Guard: only Sub::Private itself may call this.
+</span><span class="">  582: 	_assert_private_caller(&#39;_wrap&#39;)
+</span><span class="">  583: 		unless $BYPASS || ($config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE});
+</span><span class="">  584: 
+</span><span class="">  585: 	# Capture the three args in the closure; the wrapper has no mutable state.
+</span><span class="">  586: 	return sub {
+</span><span class="">  587: 		Sub::Private::_check_access($owner_pkg, $sub_name);
+</span><span class="">  588: 		goto &amp;$code;    ## no critic (ControlStructures::ProhibitGoto)
+</span><span class="">  589: 	};
+</span><span class="">  590: }
+</span><span class="">  591: 
+</span><span class="">  592: # _check_access
+</span><span class="">  593: # Purpose      : Enforce the private-access invariant at call time.
+</span><span class="">  594: # Entry        : $owner_pkg -- the package that owns the private sub
+</span><span class="">  595: #                $sub_name  -- unqualified sub name (for error messages)
+</span><span class="">  596: # Exit status  : Returns normally if the immediate non-Sub::Private caller is
+</span><span class="">  597: #                the owner package.  Croaks if any other package is found first.
+</span><span class="">  598: # Notes        : Unlike Sub::Protected there is NO -&gt;isa check.  Private means
+</span><span class="">  599: #                the owner package ONLY; subclasses are blocked.
+</span><span class="">  600: #                The stack walk skips Sub::Private frames so the wrapper is
+</span><span class="">  601: #                transparent to the check.
+</span><span class="">  602: sub _check_access {
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">603 → 611 → 0</span></span>  603: 	my ($owner_pkg, $sub_name) = @_;
 </span><span class="">  604: 
-</span><span class="">  605: =head1 DEPENDENCIES
-</span><span class="">  606: 
-</span><span class="">  607: Perl 5.14 or later,
-</span><span class="">  608: L&lt;Carp&gt; (core),
-</span><span class="">  609: L&lt;Attribute::Handlers&gt; (core),
-</span><span class="">  610: L&lt;B::Hooks::EndOfScope&gt;,
-</span><span class="">  611: L&lt;Readonly&gt;,
-</span><span class="">  612: L&lt;Params::Validate::Strict&gt;,
-</span><span class="">  613: L&lt;Return::Set&gt;,
-</span><span class="">  614: L&lt;namespace::clean&gt;,
-</span><span class="">  615: L&lt;Sub::Identify&gt;.
-</span><span class="">  616: 
-</span><span class="">  617: =head1 SEE ALSO
-</span><span class="">  618: 
-</span><span class="">  619: =over 4
-</span><span class="">  620: 
-</span><span class="">  621: =item * L&lt;Test Dashboard|https://nigelhorne.github.io/Sub-Private/coverage/&gt;
+</span><span class="">  605: 	# Fast bypass paths: either condition alone disables all checks (OR logic).
+</span><span class="">  606: 	return if $BYPASS;
+</span><span class="">  607: 	return if $config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE};
+</span><span class="">  608: 
+</span><span class="">  609: 	# Walk the call stack, skipping Sub::Private wrapper frames.
+</span><span class="">  610: 	my $frame = 0;
+</span><span class="">  611: 	while (1) {
+</span><span class="">  612: 		my $pkg = (caller($frame))[0];
+</span><span class="">  613: 
+</span><span class="">  614: 		# Reached the bottom of the stack with no valid caller found.
+</span><span class="">  615: 		if (!defined $pkg) {
+</span><span class="">  616: 			croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
+</span><span class="">  617: 				. &#39; and cannot be called from outside any package&#39;;
+</span><span class="">  618: 		}
+</span><span class="">  619: 
+</span><span class="">  620: 		# Skip any Sub::Private frames (e.g., the wrapper closure itself).
+</span><span class="">  621: 		$frame++, next if $pkg eq $SELF;
 </span><span class="">  622: 
-</span><span class="">  623: =item * L&lt;Sub::Protected&gt;
-</span><span class="">  624: 
-</span><span class="">  625: Sister module enforcing protected (owner + subclass) rather than strictly private access
-</span><span class="">  626: 
-</span><span class="">  627: =item * L&lt;Sub::Abstract&gt;
-</span><span class="">  628: 
-</span><span class="">  629: Sister module enforcing abstract (virtual) methods
+</span><span class="">  623: 		# The first non-Sub::Private caller must be the owner; everyone else
+</span><span class="">  624: 		# is blocked -- no isa allowance, unlike Sub::Protected.
+</span><span class="">  625: 		return if $pkg eq $owner_pkg;
+</span><span class="">  626: 		croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
+</span><span class="">  627: 			. &quot; and cannot be called from ${pkg}&quot;;
+</span><span class="">  628: 	}
+</span><span class="">  629: }
 </span><span class="">  630: 
-</span><span class="">  631: =item * L&lt;namespace::clean&gt;
-</span><span class="">  632: 
-</span><span class="">  633: =back
-</span><span class="">  634: 
-</span><span class="">  635: =head1 FORMAL SPECIFICATION
-</span><span class="">  636: 
-</span><span class="">  637: The following Z-notation schemas formally specify the C&lt;CheckAccess&gt;
-</span><span class="">  638: operation and C&lt;import&gt;.
-</span><span class="">  639: 
-</span><span class="">  640: =head2 C&lt;CheckAccess&gt;
+</span><span class="">  631: # _assert_private_caller
+</span><span class="">  632: # Purpose      : Croak if a guarded private method was called from outside
+</span><span class="">  633: #                Sub::Private.
+</span><span class="">  634: # Entry        : $method_name -- the guarded method name (for error messages)
+</span><span class="">  635: # Exit status  : Returns normally if caller(1) is Sub::Private; croaks
+</span><span class="">  636: #                otherwise with a descriptive message.
+</span><span class="">  637: # Notes        : caller(1) is the package that called the guarded method,
+</span><span class="">  638: #                which in turn called this function.
+</span><span class="">  639: sub _assert_private_caller {
+</span><span class="">  640: 	my ($method_name) = @_;
 </span><span class="">  641: 
-</span><span class="">  642:     -- Type abbreviations
-</span><span class="">  643:     Package  == seq CHAR     -- a non-empty Perl package name string
-</span><span class="">  644:     SubName  == seq CHAR     -- a Perl identifier string
-</span><span class="">  645: 
-</span><span class="">  646:     -- Private-access predicate (strictly owner only -- no isa expansion)
-</span><span class="">  647:     permitted : Package x Package -&gt; BOOL
-</span><span class="">  648:     forall caller, owner : Package .
-</span><span class="">  649:         permitted(caller, owner) &lt;=&gt; caller = owner
-</span><span class="">  650: 
-</span><span class="">  651:     -- System state
-</span><span class="">  652:     +-Registry-------------------------------------------+
-</span><span class="">  653:     | private   : P (Package x SubName)                  |
-</span><span class="">  654:     | bypass    : BOOL                                    |
-</span><span class="">  655:     | config    : { mode : seq CHAR,                      |
-</span><span class="">  656:     |               harness_bypass : BOOL }               |
-</span><span class="">  657:     +----------------------------------------------------+
-</span><span class="">  658: 
-</span><span class="">  659:     -- Initial state
-</span><span class="">  660:     +-InitRegistry---------------------------------------+
-</span><span class="">  661:     | Registry                                           |
-</span><span class="">  662:     |----------------------------------------------------|
-</span><span class="">  663:     | private   = {}                                     |
-</span><span class="">  664:     | bypass    = false                                  |
-</span><span class="">  665:     | config    = { mode |-&gt; &#39;namespace&#39;,                 |
-</span><span class="">  666:     |               harness_bypass |-&gt; true }             |
-</span><span class="">  667:     +----------------------------------------------------+
+</span><span class="">  642: 	# caller(1): the package one frame above the guarded method.
+</span><span class="">  643: 	my $caller = (caller(1))[0] // q{};
+</span><span class="">  644: 
+</span><span class="">  645: 	# Only calls originating within Sub::Private itself are permitted.
+</span><span class="">  646: 	return if $caller eq $SELF;
+</span><span class="">  647: 
+</span><span class="">  648: 	croak &quot;${method_name}() is a private method of $SELF&quot;
+</span><span class="">  649: 		. &quot; and cannot be called from ${caller}&quot;;
+</span><span class="">  650: }
+</span><span class="">  651: 
+</span><span class="">  652: 1;
+</span><span class="">  653: 
+</span><span class="">  654: __END__
+</span><span class="">  655: 
+</span><span class="">  656: =head1 PUBLIC VARIABLES
+</span><span class="">  657: 
+</span><span class="">  658: =head2 C&lt;$BYPASS&gt;
+</span><span class="">  659: 
+</span><span class="">  660: Set to a true value to disable all access checks (enforce mode only).
+</span><span class="">  661: Use C&lt;local&gt; in tests; see L&lt;/Bypass for testing&gt;.
+</span><span class="">  662: 
+</span><span class="">  663: =head2 C&lt;%config&gt;
+</span><span class="">  664: 
+</span><span class="">  665: Module-level configuration hash.  Supported keys:
+</span><span class="">  666: 
+</span><span class="">  667: =over 4
 </span><span class="">  668: 
-</span><span class="">  669:     -- Bypass predicate
-</span><span class="">  670:     bypass_active(R) &lt;=&gt;
-</span><span class="">  671:         R.bypass or (R.config.harness_bypass and HARNESS_ACTIVE)
-</span><span class="">  672: 
-</span><span class="">  673:     -- Access check: no state change
-</span><span class="">  674:     +-CheckAccess----------------------------------------+
-</span><span class="">  675:     | Xi-Registry                                        |
-</span><span class="">  676:     | caller? : Package                                  |
-</span><span class="">  677:     | owner?  : Package                                  |
-</span><span class="">  678:     | name?   : SubName                                  |
-</span><span class="">  679:     | ok!     : BOOL                                     |
-</span><span class="">  680:     |----------------------------------------------------|
-</span><span class="">  681:     | (owner?, name?) in private                         |
-</span><span class="">  682:     | ok! &lt;=&gt; bypass_active or permitted(caller?, owner?)|
-</span><span class="">  683:     +----------------------------------------------------+
+</span><span class="">  669: =item C&lt;mode&gt;
+</span><span class="">  670: 
+</span><span class="">  671: C&lt;&#39;namespace&#39;&gt; (default) or C&lt;&#39;enforce&#39;&gt;.  Must be set in a C&lt;BEGIN&gt;
+</span><span class="">  672: block before C&lt;use Sub::Private&gt; to take effect at C&lt;CHECK&gt; time.  It
+</span><span class="">  673: applies to every package that did not choose its own mode with
+</span><span class="">  674: C&lt;use Sub::Private { mode =&gt; ... }&gt;, so a module should use that form
+</span><span class="">  675: instead of changing this value.
+</span><span class="">  676: 
+</span><span class="">  677: =item C&lt;harness_bypass&gt;
+</span><span class="">  678: 
+</span><span class="">  679: When true (default), access checks are skipped whenever
+</span><span class="">  680: C&lt;$ENV{HARNESS_ACTIVE}&gt; is set.  Set to 0 to test enforcement under
+</span><span class="">  681: C&lt;prove&gt;.
+</span><span class="">  682: 
+</span><span class="">  683: =back
 </span><span class="">  684: 
-</span><span class="">  685:     -- Violation (croak case):
-</span><span class="">  686:     --   not ok! =&gt;
-</span><span class="">  687:     --   croak(&quot;name?()&quot; ++ &quot; is a private subroutine of &quot; ++ owner?
-</span><span class="">  688:     --         ++ &quot; and cannot be called from &quot; ++ caller?)
-</span><span class="">  689: 
-</span><span class="">  690:     -- Key difference from Sub::Protected:
-</span><span class="">  691:     --   permitted(caller, owner) &lt;=&gt; caller = owner   (identity only)
-</span><span class="">  692:     -- vs Sub::Protected:
-</span><span class="">  693:     --   permitted(caller, owner) &lt;=&gt; owner in anc(caller)   (ISA chain)
+</span><span class="">  685: =head1 KNOWN LIMITATIONS
+</span><span class="">  686: 
+</span><span class="">  687: =over 4
+</span><span class="">  688: 
+</span><span class="">  689: =item C&lt;namespace&gt; mode: OO dispatch fails for private subs
+</span><span class="">  690: 
+</span><span class="">  691: C&lt;$self-&gt;_helper&gt; from within the owner package fails because method
+</span><span class="">  692: dispatch uses the symbol table at runtime, which no longer contains the
+</span><span class="">  693: entry.  Use C&lt;enforce&gt; mode for OO classes.
 </span><span class="">  694: 
-</span><span class="">  695: =head2 import
+</span><span class="">  695: =item C&lt;enforce&gt; mode: runtime-only
 </span><span class="">  696: 
-</span><span class="">  697:     -- Valid identifier predicate
-</span><span class="">  698:     valid_id : SubName -&gt; BOOL
-</span><span class="">  699:     valid_id(n) &lt;=&gt; n =~ /\A[_a-zA-Z]\w*\z/
+</span><span class="">  697: Checks are runtime only; there is no compile-time enforcement.
+</span><span class="">  698: 
+</span><span class="">  699: =item C&lt;enforce&gt; mode: raw coderef bypass
 </span><span class="">  700: 
-</span><span class="">  701:     -- Compile phase: CHECK has run, and code is still being compiled
-</span><span class="">  702:     post_check  : BOOL
-</span><span class="">  703:     compiling   : BOOL       -- true while $^S is undefined
-</span><span class="">  704: 
-</span><span class="">  705:     -- Pre-condition (declarative form)
-</span><span class="">  706:     +-ImportPre-----------------------------------------+
-</span><span class="">  707:     | config.mode = &#39;enforce&#39;                           |
-</span><span class="">  708:     | forall n in subs . valid_id(n)                    |
-</span><span class="">  709:     +---------------------------------------------------+
-</span><span class="">  710: 
-</span><span class="">  711:     -- Post-condition (before CHECK): queue for the CHECK block
-</span><span class="">  712:     +-ImportPost_PreCheck-------------------------------+
-</span><span class="">  713:     | not post_check                                    |
-</span><span class="">  714:     |---------------------------------------------------|
-</span><span class="">  715:     | pending&#39; = pending ++ &lt; (caller, n) | n in subs &gt; |
-</span><span class="">  716:     +---------------------------------------------------+
+</span><span class="">  701: A raw code reference obtained B&lt;before&gt; wrapping (via C&lt;can()&gt; or
+</span><span class="">  702: C&lt;\&amp;Foo::_helper&gt;) bypasses the check.  The attribute form makes this
+</span><span class="">  703: hard because wrapping happens at CHECK time.  When the package is loaded
+</span><span class="">  704: after CHECK, wrapping happens at the end of the enclosing scope, so a
+</span><span class="">  705: C&lt;BEGIN&gt; block earlier in the same file could still take a reference to
+</span><span class="">  706: the unwrapped sub.
+</span><span class="">  707: 
+</span><span class="">  708: =item C&lt;enforce&gt; mode: C&lt;can()&gt; leaks private method existence
+</span><span class="">  709: 
+</span><span class="">  710: In C&lt;enforce&gt; mode the original sub is replaced by a wrapper closure, so
+</span><span class="">  711: C&lt;&lt; -&gt;can(&#39;_helper&#39;) &gt;&gt; returns the wrapper (a true value) even to callers outside
+</span><span class="">  712: the owner package.  In C&lt;namespace&gt; mode the stash entry is deleted entirely,
+</span><span class="">  713: so C&lt;&lt; -&gt;can &gt;&gt; correctly returns C&lt;undef&gt;.  A future release may inject a
+</span><span class="">  714: caller-aware C&lt;can()&gt; override into each class that uses C&lt;enforce&gt; mode,
+</span><span class="">  715: returning the coderef only when the caller is the owner package and C&lt;undef&gt;
+</span><span class="">  716: for everyone else.
 </span><span class="">  717: 
-</span><span class="">  718:     -- Post-condition (after CHECK, at run time): wrap now
-</span><span class="">  719:     +-ImportPost_RunTime--------------------------------+
-</span><span class="">  720:     | post_check and not compiling                      |
-</span><span class="">  721:     | forall n in subs . defined(caller, n)             |
-</span><span class="">  722:     |---------------------------------------------------|
-</span><span class="">  723:     | forall n in subs .                                |
-</span><span class="">  724:     |   stash&#39;(caller, n) = wrapper(caller, n)          |
-</span><span class="">  725:     +---------------------------------------------------+
-</span><span class="">  726: 
-</span><span class="">  727:     -- Post-condition (after CHECK, while compiling): wrap at the
-</span><span class="">  728:     -- end of the enclosing scope S
-</span><span class="">  729:     +-ImportPost_Deferred-------------------------------+
-</span><span class="">  730:     | post_check and compiling                          |
-</span><span class="">  731:     |---------------------------------------------------|
-</span><span class="">  732:     | at end_of_scope(S) :                              |
-</span><span class="">  733:     |   (forall n in subs . defined(caller, n)) =&gt;      |
-</span><span class="">  734:     |     forall n in subs .                            |
-</span><span class="">  735:     |       stash&#39;(caller, n) = wrapper(caller, n)      |
-</span><span class="">  736:     |   (exists n in subs . not defined(caller, n)) =&gt;  |
-</span><span class="">  737:     |     croak at the &quot;use&quot; line                       |
-</span><span class="">  738:     +---------------------------------------------------+
+</span><span class="">  718: =item UNIVERSAL namespace pollution
+</span><span class="">  719: 
+</span><span class="">  720: The C&lt;:Private&gt; attribute is installed in C&lt;UNIVERSAL&gt;, which is
+</span><span class="">  721: intentional (any package can use it after a single C&lt;use&gt;), but it does
+</span><span class="">  722: introduce C&lt;UNIVERSAL::Private&gt; into the global namespace.
+</span><span class="">  723: 
+</span><span class="">  724: =back
+</span><span class="">  725: 
+</span><span class="">  726: =head1 DEPENDENCIES
+</span><span class="">  727: 
+</span><span class="">  728: Perl 5.14 or later,
+</span><span class="">  729: L&lt;Carp&gt; (core),
+</span><span class="">  730: L&lt;Attribute::Handlers&gt; (core),
+</span><span class="">  731: L&lt;B::Hooks::EndOfScope&gt;,
+</span><span class="">  732: L&lt;Readonly&gt;,
+</span><span class="">  733: L&lt;Params::Validate::Strict&gt;,
+</span><span class="">  734: L&lt;Return::Set&gt;,
+</span><span class="">  735: L&lt;namespace::clean&gt;,
+</span><span class="">  736: L&lt;Sub::Identify&gt;.
+</span><span class="">  737: 
+</span><span class="">  738: =head1 SEE ALSO
 </span><span class="">  739: 
-</span><span class="">  740:     -- In every case, a sub that is not defined when wrapping is
-</span><span class="">  741:     -- attempted croaks:
-</span><span class="">  742:     --   &quot;Sub::Private: &quot; ++ caller ++ &quot;::&quot; ++ n ++ &quot; is not defined&quot;
+</span><span class="">  740: =over 4
+</span><span class="">  741: 
+</span><span class="">  742: =item * L&lt;Test Dashboard|https://nigelhorne.github.io/Sub-Private/coverage/&gt;
 </span><span class="">  743: 
-</span><span class="">  744: =head1 AUTHOR
+</span><span class="">  744: =item * L&lt;Sub::Protected&gt;
 </span><span class="">  745: 
-</span><span class="">  746: Original Author:
-</span><span class="">  747: Peter Makholm, C&lt;&lt; &lt;peter at makholm.net&gt; &gt;&gt;
-</span><span class="">  748: 
-</span><span class="">  749: Current maintainer:
-</span><span class="">  750: Nigel Horne, C&lt;&lt; &lt;njh at nigelhorne.com&gt; &gt;&gt;
+</span><span class="">  746: Sister module enforcing protected (owner + subclass) rather than strictly private access
+</span><span class="">  747: 
+</span><span class="">  748: =item * L&lt;Sub::Abstract&gt;
+</span><span class="">  749: 
+</span><span class="">  750: Sister module enforcing abstract (virtual) methods
 </span><span class="">  751: 
-</span><span class="">  752: =head1 BUGS
+</span><span class="">  752: =item * L&lt;namespace::clean&gt;
 </span><span class="">  753: 
-</span><span class="">  754: Please report any bugs or feature requests to C&lt;bug-sub-private at rt.cpan.org&gt;,
-</span><span class="">  755: or through the web interface at
-</span><span class="">  756: L&lt;https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private&gt;.
+</span><span class="">  754: =back
+</span><span class="">  755: 
+</span><span class="">  756: =head1 FORMAL SPECIFICATION
 </span><span class="">  757: 
-</span><span class="">  758: =head1 SUPPORT
-</span><span class="">  759: 
-</span><span class="">  760:     perldoc Sub::Private
-</span><span class="">  761: 
-</span><span class="">  762: =over 4
-</span><span class="">  763: 
-</span><span class="">  764: =item * RT: CPAN&#39;s request tracker
-</span><span class="">  765: 
-</span><span class="">  766: L&lt;https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private&gt;
-</span><span class="">  767: 
-</span><span class="">  768: =item * MetaCPAN
-</span><span class="">  769: 
-</span><span class="">  770: L&lt;https://metacpan.org/dist/Sub-Private&gt;
+</span><span class="">  758: The following Z-notation schemas formally specify the C&lt;CheckAccess&gt;
+</span><span class="">  759: operation and C&lt;import&gt;.
+</span><span class="">  760: 
+</span><span class="">  761: =head2 C&lt;CheckAccess&gt;
+</span><span class="">  762: 
+</span><span class="">  763:     -- Type abbreviations
+</span><span class="">  764:     Package  == seq CHAR     -- a non-empty Perl package name string
+</span><span class="">  765:     SubName  == seq CHAR     -- a Perl identifier string
+</span><span class="">  766: 
+</span><span class="">  767:     -- Private-access predicate (strictly owner only -- no isa expansion)
+</span><span class="">  768:     permitted : Package x Package -&gt; BOOL
+</span><span class="">  769:     forall caller, owner : Package .
+</span><span class="">  770:         permitted(caller, owner) &lt;=&gt; caller = owner
 </span><span class="">  771: 
-</span><span class="">  772: =back
-</span><span class="">  773: 
-</span><span class="">  774: =head1 COPYRIGHT &amp; LICENSE
-</span><span class="">  775: 
-</span><span class="">  776: Copyright 2009 Peter Makholm, all rights reserved.
-</span><span class="">  777: Portions copyright 2024-2026 Nigel Horne.
-</span><span class="">  778: 
-</span><span class="">  779: This program is free software; you can redistribute it and/or modify it
-</span><span class="">  780: under the same terms as Perl itself.
-</span><span class="">  781: 
-</span><span class="">  782: =cut
+</span><span class="">  772:     -- System state
+</span><span class="">  773:     +-Registry-------------------------------------------+
+</span><span class="">  774:     | private   : P (Package x SubName)                  |
+</span><span class="">  775:     | bypass    : BOOL                                    |
+</span><span class="">  776:     | config    : { mode : seq CHAR,                      |
+</span><span class="">  777:     |               harness_bypass : BOOL }               |
+</span><span class="">  778:     | pkg_mode  : Package -+&gt; seq CHAR                   |
+</span><span class="">  779:     +----------------------------------------------------+
+</span><span class="">  780: 
+</span><span class="">  781:     -- Initial state
+</span><span class="">  782:     +-InitRegistry---------------------------------------+
+</span><span class="">  783:     | Registry                                           |
+</span><span class="">  784:     |----------------------------------------------------|
+</span><span class="">  785:     | private   = {}                                     |
+</span><span class="">  786:     | bypass    = false                                  |
+</span><span class="">  787:     | config    = { mode |-&gt; &#39;namespace&#39;,                 |
+</span><span class="">  788:     |               harness_bypass |-&gt; true }             |
+</span><span class="">  789:     | pkg_mode  = {}                                     |
+</span><span class="">  790:     +----------------------------------------------------+
+</span><span class="">  791: 
+</span><span class="">  792:     -- Bypass predicate
+</span><span class="">  793:     bypass_active(R) &lt;=&gt;
+</span><span class="">  794:         R.bypass or (R.config.harness_bypass and HARNESS_ACTIVE)
+</span><span class="">  795: 
+</span><span class="">  796:     -- Access check: no state change
+</span><span class="">  797:     +-CheckAccess----------------------------------------+
+</span><span class="">  798:     | Xi-Registry                                        |
+</span><span class="">  799:     | caller? : Package                                  |
+</span><span class="">  800:     | owner?  : Package                                  |
+</span><span class="">  801:     | name?   : SubName                                  |
+</span><span class="">  802:     | ok!     : BOOL                                     |
+</span><span class="">  803:     |----------------------------------------------------|
+</span><span class="">  804:     | (owner?, name?) in private                         |
+</span><span class="">  805:     | ok! &lt;=&gt; bypass_active or permitted(caller?, owner?)|
+</span><span class="">  806:     +----------------------------------------------------+
+</span><span class="">  807: 
+</span><span class="">  808:     -- Violation (croak case):
+</span><span class="">  809:     --   not ok! =&gt;
+</span><span class="">  810:     --   croak(&quot;name?()&quot; ++ &quot; is a private subroutine of &quot; ++ owner?
+</span><span class="">  811:     --         ++ &quot; and cannot be called from &quot; ++ caller?)
+</span><span class="">  812: 
+</span><span class="">  813:     -- Key difference from Sub::Protected:
+</span><span class="">  814:     --   permitted(caller, owner) &lt;=&gt; caller = owner   (identity only)
+</span><span class="">  815:     -- vs Sub::Protected:
+</span><span class="">  816:     --   permitted(caller, owner) &lt;=&gt; owner in anc(caller)   (ISA chain)
+</span><span class="">  817: 
+</span><span class="">  818: =head2 import
+</span><span class="">  819: 
+</span><span class="">  820:     -- Valid identifier predicate
+</span><span class="">  821:     valid_id : SubName -&gt; BOOL
+</span><span class="">  822:     valid_id(n) &lt;=&gt; n =~ /\A[_a-zA-Z]\w*\z/
+</span><span class="">  823: 
+</span><span class="">  824:     -- Compile phase: CHECK has run, and code is still being compiled
+</span><span class="">  825:     post_check  : BOOL
+</span><span class="">  826:     compiling   : BOOL       -- true while $^S is undefined
+</span><span class="">  827: 
+</span><span class="">  828:     -- The mode that applies to a package&#39;s subs
+</span><span class="">  829:     mode_for(p) = pkg_mode(p)   if p in dom pkg_mode
+</span><span class="">  830:                 = config.mode   otherwise
+</span><span class="">  831: 
+</span><span class="">  832:     -- Options (hashref first): sets the caller&#39;s mode only
+</span><span class="">  833:     +-ImportOptions-------------------------------------+
+</span><span class="">  834:     | Delta-Registry                                    |
+</span><span class="">  835:     | mode? : seq CHAR                                  |
+</span><span class="">  836:     |---------------------------------------------------|
+</span><span class="">  837:     | mode? in { &#39;namespace&#39;, &#39;enforce&#39; }               |
+</span><span class="">  838:     | pkg_mode&#39; = pkg_mode (+) { caller |-&gt; mode? }     |
+</span><span class="">  839:     | config&#39; = config                                  |
+</span><span class="">  840:     +---------------------------------------------------+
+</span><span class="">  841: 
+</span><span class="">  842:     -- Pre-condition (declarative form)
+</span><span class="">  843:     +-ImportPre-----------------------------------------+
+</span><span class="">  844:     | mode_for(caller) = &#39;enforce&#39;                      |
+</span><span class="">  845:     | forall n in subs . valid_id(n)                    |
+</span><span class="">  846:     +---------------------------------------------------+
+</span><span class="">  847: 
+</span><span class="">  848:     -- Post-condition (before CHECK): queue for the CHECK block
+</span><span class="">  849:     +-ImportPost_PreCheck-------------------------------+
+</span><span class="">  850:     | not post_check                                    |
+</span><span class="">  851:     |---------------------------------------------------|
+</span><span class="">  852:     | pending&#39; = pending ++ &lt; (caller, n) | n in subs &gt; |
+</span><span class="">  853:     +---------------------------------------------------+
+</span><span class="">  854: 
+</span><span class="">  855:     -- Post-condition (after CHECK, at run time): wrap now
+</span><span class="">  856:     +-ImportPost_RunTime--------------------------------+
+</span><span class="">  857:     | post_check and not compiling                      |
+</span><span class="">  858:     | forall n in subs . defined(caller, n)             |
+</span><span class="">  859:     |---------------------------------------------------|
+</span><span class="">  860:     | forall n in subs .                                |
+</span><span class="">  861:     |   stash&#39;(caller, n) = wrapper(caller, n)          |
+</span><span class="">  862:     +---------------------------------------------------+
+</span><span class="">  863: 
+</span><span class="">  864:     -- Post-condition (after CHECK, while compiling): wrap at the
+</span><span class="">  865:     -- end of the enclosing scope S
+</span><span class="">  866:     +-ImportPost_Deferred-------------------------------+
+</span><span class="">  867:     | post_check and compiling                          |
+</span><span class="">  868:     |---------------------------------------------------|
+</span><span class="">  869:     | at end_of_scope(S) :                              |
+</span><span class="">  870:     |   (forall n in subs . defined(caller, n)) =&gt;      |
+</span><span class="">  871:     |     forall n in subs .                            |
+</span><span class="">  872:     |       stash&#39;(caller, n) = wrapper(caller, n)      |
+</span><span class="">  873:     |   (exists n in subs . not defined(caller, n)) =&gt;  |
+</span><span class="">  874:     |     croak at the &quot;use&quot; line                       |
+</span><span class="">  875:     +---------------------------------------------------+
+</span><span class="">  876: 
+</span><span class="">  877:     -- In every case, a sub that is not defined when wrapping is
+</span><span class="">  878:     -- attempted croaks:
+</span><span class="">  879:     --   &quot;Sub::Private: &quot; ++ caller ++ &quot;::&quot; ++ n ++ &quot; is not defined&quot;
+</span><span class="">  880: 
+</span><span class="">  881: =head1 AUTHOR
+</span><span class="">  882: 
+</span><span class="">  883: Original Author:
+</span><span class="">  884: Peter Makholm, C&lt;&lt; &lt;peter at makholm.net&gt; &gt;&gt;
+</span><span class="">  885: 
+</span><span class="">  886: Current maintainer:
+</span><span class="">  887: Nigel Horne, C&lt;&lt; &lt;njh at nigelhorne.com&gt; &gt;&gt;
+</span><span class="">  888: 
+</span><span class="">  889: =head1 BUGS
+</span><span class="">  890: 
+</span><span class="">  891: Please report any bugs or feature requests to C&lt;bug-sub-private at rt.cpan.org&gt;,
+</span><span class="">  892: or through the web interface at
+</span><span class="">  893: L&lt;https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Sub-Private&gt;.
+</span><span class="">  894: 
+</span><span class="">  895: =head1 SUPPORT
+</span><span class="">  896: 
+</span><span class="">  897:     perldoc Sub::Private
+</span><span class="">  898: 
+</span><span class="">  899: =over 4
+</span><span class="">  900: 
+</span><span class="">  901: =item * RT: CPAN&#39;s request tracker
+</span><span class="">  902: 
+</span><span class="">  903: L&lt;https://rt.cpan.org/NoAuth/Bugs.html?Dist=Sub-Private&gt;
+</span><span class="">  904: 
+</span><span class="">  905: =item * MetaCPAN
+</span><span class="">  906: 
+</span><span class="">  907: L&lt;https://metacpan.org/dist/Sub-Private&gt;
+</span><span class="">  908: 
+</span><span class="">  909: =back
+</span><span class="">  910: 
+</span><span class="">  911: =head1 COPYRIGHT &amp; LICENSE
+</span><span class="">  912: 
+</span><span class="">  913: Copyright 2009 Peter Makholm, all rights reserved.
+</span><span class="">  914: Portions copyright 2024-2026 Nigel Horne.
+</span><span class="">  915: 
+</span><span class="">  916: This program is free software; you can redistribute it and/or modify it
+</span><span class="">  917: under the same terms as Perl itself.
+</span><span class="">  918: 
+</span><span class="">  919: =cut
 </span></pre>
 
 <script>
