@@ -1,6 +1,14 @@
 Revision history for Sub-Private
 
 0.08
+	[ Bug Fixes ]
+	- Stop Perl crashing on Windows 5.42 as soon as Sub::Private loads:
+	  load B::Hooks::EndOfScope with its pure-Perl backend there, because
+	  its XS backend, Variable::Magic, crashes on load.  A backend chosen
+	  through B_HOOKS_ENDOFSCOPE_IMPLEMENTATION is left alone.  With the
+	  pure-Perl backend, an undefined sub named in a run-time
+	  "use Sub::Private qw(...)" is reported as a warning, not an
+	  exception; see KNOWN LIMITATIONS.
 	[ Tests ]
 	Added t/oo_namespace_mode.t
 
