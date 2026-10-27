@@ -1,6 +1,6 @@
 Revision history for Sub-Private
 
-0.08
+0.08	Tue Oct 27 09:50:04 AM EDT 2026
 	[ Bug Fixes ]
 	- Stop Perl crashing on Windows 5.42 as soon as Sub::Private loads:
 	  load B::Hooks::EndOfScope with its pure-Perl backend there, because
