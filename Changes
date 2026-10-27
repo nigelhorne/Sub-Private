@@ -1,5 +1,9 @@
 Revision history for Sub-Private
 
+0.09
+	[ Bug Fixes ]
+	- Fix version in tests
+
 0.08	Tue Oct 27 09:50:04 AM EDT 2026
 	[ Bug Fixes ]
 	- Stop Perl crashing on Windows 5.42 as soon as Sub::Private loads:
