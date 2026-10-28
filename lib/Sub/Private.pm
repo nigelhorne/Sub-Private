@@ -33,11 +33,11 @@ Sub::Private - Private subroutines and methods
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 # ---------------------------------------------------------------------------
 # Mode-name constants.  Using Readonly prevents accidental overwriting.

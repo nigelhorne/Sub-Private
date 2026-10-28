@@ -4,7 +4,7 @@ Sub::Private - Private subroutines and methods
 
 ## Version
 
-Version 0.08
+Version 0.09
 
 ## Synopsis
 
