@@ -305,8 +305,37 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">   13: # backend the user chose through the environment is left alone, and
 </span><span class="">   14: # %ENV is only changed while the module loads.
 </span><span class="">   15: BEGIN {
-</span><span class="">   16: 	my $avoid_xs = ($^O eq &#39;MSWin32&#39;) &amp;&amp; ($] &gt;= 5.042)
-</span><span class="">   17: 		&amp;&amp; !defined($ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION});
+</span><span class="survived-3 tooltip" data-tooltip="Boundary mutation survived. Add tests around edge values (e.g. min, max, off-by-one).">   16: 	my $avoid_xs = ($^O eq &#39;MSWin32&#39;) &amp;&amp; ($] &gt;= 5.042)
+</span>
+					<details class="mutant-details">
+					<summary>Mutants (Total: 3, Killed: 0, Survived: 3)</summary>
+					<ul>
+				<li><b>NUM_BOUNDARY_16_43_>: Numeric boundary flip >= to ></b><br>HIGH: Likely missing edge-case test (boundary value)
+
+								<div class="suggested-test">
+								<div class="suggest-label">🧪 Suggested Test</div>
+								<pre># Boundary test suggestion
+is( func(VALUE_AT_BOUNDARY), EXPECTED, &#39;Test boundary behaviour&#39; );
+</pre>
+								</div>
+							</li><li><b>NUM_BOUNDARY_16_43_<: Numeric boundary flip >= to <</b><br>HIGH: Likely missing edge-case test (boundary value)
+
+								<div class="suggested-test">
+								<div class="suggest-label">🧪 Suggested Test</div>
+								<pre># Boundary test suggestion
+is( func(VALUE_AT_BOUNDARY), EXPECTED, &#39;Test boundary behaviour&#39; );
+</pre>
+								</div>
+							</li><li><b>NUM_BOUNDARY_16_43_<=: Numeric boundary flip >= to <=</b><br>HIGH: Likely missing edge-case test (boundary value)
+
+								<div class="suggested-test">
+								<div class="suggest-label">🧪 Suggested Test</div>
+								<pre># Boundary test suggestion
+is( func(VALUE_AT_BOUNDARY), EXPECTED, &#39;Test boundary behaviour&#39; );
+</pre>
+								</div>
+							</li></ul></details>
+<span class="">   17: 		&amp;&amp; !defined($ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION});
 </span><span class="">   18: 	local $ENV{B_HOOKS_ENDOFSCOPE_IMPLEMENTATION} = &#39;PP&#39; if $avoid_xs;
 </span><span class="">   19: 	require B::Hooks::EndOfScope;
 </span><span class="">   20: }
@@ -325,11 +354,11 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">   33: 
 </span><span class="">   34: =head1 VERSION
 </span><span class="">   35: 
-</span><span class="">   36: Version 0.08
+</span><span class="">   36: Version 0.09
 </span><span class="">   37: 
 </span><span class="">   38: =cut
 </span><span class="">   39: 
-</span><span class="">   40: our $VERSION = &#39;0.08&#39;;
+</span><span class="">   40: our $VERSION = &#39;0.09&#39;;
 </span><span class="">   41: 
 </span><span class="">   42: # ---------------------------------------------------------------------------
 </span><span class="">   43: # Mode-name constants.  Using Readonly prevents accidental overwriting.
@@ -503,8 +532,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  211: 
 </span><span class="">  212: # -------------------------------------------------------------------
 </span><span class="">  213: # ATTRIBUTE HANDLER
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  214: # -------------------------------------------------------------------
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  215: 
+</span><span class="">  214: # -------------------------------------------------------------------
+</span><span class="">  215: 
 </span><span class="">  216: # Install :Private in UNIVERSAL so every package can use it after a
 </span><span class="">  217: # single &quot;use Sub::Private&quot;, with no per-package setup required.
 </span><span class="">  218: # ATTR(CODE,CHECK) fires at CHECK time, after all subs are compiled.
@@ -513,8 +542,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  221: sub UNIVERSAL::Private :ATTR(CODE,BEGIN,CHECK) {
 </span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">222 → 224 → 245</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">222 → 224 → 0</span></span>  222: 	my ($package, $symbol, $referent, $attr, $data, $phase) = @_;
 </span><span class="">  223: 
-</span><span class="">  224: 	if ($phase eq &#39;BEGIN&#39;) {
-</span><span class="">  225: 		# Before CHECK, the CHECK-phase call does the work.
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  224: 	if ($phase eq &#39;BEGIN&#39;) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  225: 		# Before CHECK, the CHECK-phase call does the work.
 </span><span class="">  226: 		return unless $_post_check;
 </span><span class="">  227: 
 </span><span class="">  228: 		# After CHECK the sub is still being compiled and may have no name
@@ -534,8 +563,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  242: 	# the half-compiled sub in namespace mode, and installed a wrapper as
 </span><span class="">  243: 	# main::ANON in enforce mode.  The BEGIN-phase call above deals with
 </span><span class="">  244: 	# that code, so only the real CHECK phase is used here.
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic."><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">245 → 255 → 265</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">245 → 255 → 0</span></span>  245: 	return if $phase eq &#39;CHECK&#39; &amp;&amp; ${^GLOBAL_PHASE} ne &#39;CHECK&#39;;
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  246: 
+</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">245 → 255 → 265</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">245 → 255 → 0</span></span>  245: 	return if $phase eq &#39;CHECK&#39; &amp;&amp; ${^GLOBAL_PHASE} ne &#39;CHECK&#39;;
+</span><span class="">  246: 
 </span><span class="">  247: 	my $sub_name = *{$symbol}{NAME};
 </span><span class="">  248: 
 </span><span class="">  249: 	# The mode chosen by the sub&#39;s own package, or else the global one.
@@ -544,8 +573,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  252: 	# Reject unrecognised mode values early rather than silently misbehaving.
 </span><span class="">  253: 	_assert_known_mode($mode);
 </span><span class="">  254: 
-</span><span class="">  255: 	if ($mode eq $MODE_ENFORCE) {
-</span><span class="">  256: 		# Enforce mode: replace the stash entry with an access-checking wrapper.
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  255: 	if ($mode eq $MODE_ENFORCE) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  256: 		# Enforce mode: replace the stash entry with an access-checking wrapper.
 </span><span class="">  257: 		no warnings &#39;redefine&#39;;
 </span><span class="">  258: 		*{$symbol} = _wrap($package, $sub_name, $referent);
 </span><span class="">  259: 	} else {
@@ -737,9 +766,9 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  445: 	for my $sub_name (@subs) {
 </span><span class="">  446: 		# Coerce invalid types (undef, ref) to empty string before schema check.
 </span><span class="">  447: 		my $check = (defined $sub_name &amp;&amp; !ref $sub_name) ? $sub_name : q{};
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  448: 		eval {
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  449: 			validate_strict(
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  450: 				schema =&gt; $SUB_NAME_SCHEMA,
+</span><span class="">  448: 		eval {
+</span><span class="">  449: 			validate_strict(
+</span><span class="">  450: 				schema =&gt; $SUB_NAME_SCHEMA,
 </span><span class="">  451: 				input  =&gt; { name =&gt; $check },
 </span><span class="">  452: 			);
 </span><span class="">  453: 		};
@@ -747,9 +776,9 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  455: 	}
 </span><span class="">  456: 
 </span><span class="">  457: 	# Schedule or immediately apply wrapping depending on compile phase.
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">458 → 458 → 478</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">458 → 458 → 0</span></span>  458: 	if ($_post_check) {
-</span><span class="">  459: 		if (defined $^S) {
-</span><span class="">  460: 			# Called at run time: the subs already exist, wrap them now.
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic."><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">458 → 458 → 478</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">458 → 458 → 0</span></span>  458: 	if ($_post_check) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  459: 		if (defined $^S) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  460: 			# Called at run time: the subs already exist, wrap them now.
 </span><span class="">  461: 			_process_one($owner_pkg, $_) for @subs;
 </span><span class="">  462: 		} else {
 </span><span class="">  463: 			# &quot;use&quot; after CHECK (e.g. a run-time require): the subs below the
@@ -820,8 +849,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  528: # Entry        : $pkg     -- the package that called import()
 </span><span class="">  529: #                $options -- hashref; the only key allowed is &quot;mode&quot;
 </span><span class="">  530: # Exit status  : Returns normally; croaks on an unknown key or mode.
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  531: # Side effects : Sets the package&#39;s entry in %_package_mode.  The global
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  532: #                $config{mode} is not touched, so other packages are not
+</span><span class="">  531: # Side effects : Sets the package&#39;s entry in %_package_mode.  The global
+</span><span class="">  532: #                $config{mode} is not touched, so other packages are not
 </span><span class="">  533: #                affected.
 </span><span class="">  534: sub _set_package_options {
 </span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">535 → 538 → 541</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">535 → 538 → 0</span></span>  535: 	my ($pkg, $options) = @_;
@@ -830,8 +859,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  538: 	for my $key (sort keys %{$options}) {
 </span><span class="">  539: 		croak &quot;$SELF-&gt;import: unknown option &#39;$key&#39;&quot; if $key ne $KEY_MODE;
 </span><span class="">  540: 	}
-</span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">541 → 541 → 546</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">541 → 541 → 0</span></span>  541: 	if (exists $options-&gt;{$KEY_MODE}) {
-</span><span class="">  542: 		my $mode = $options-&gt;{$KEY_MODE} // q{};
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic."><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">541 → 541 → 546</span></span><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">541 → 541 → 0</span></span>  541: 	if (exists $options-&gt;{$KEY_MODE}) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  542: 		my $mode = $options-&gt;{$KEY_MODE} // q{};
 </span><span class="">  543: 		_assert_known_mode($mode);
 </span><span class="">  544: 		$_package_mode{$pkg} = $mode;
 </span><span class="">  545: 	}
@@ -904,8 +933,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  612: sub _check_access {
 </span><span class=""><span class="lcsaj-tip"><span class="lcsaj-dot">●</span><span class="lcsaj-tip-text">613 → 621 → 0</span></span>  613: 	my ($owner_pkg, $sub_name) = @_;
 </span><span class="">  614: 
-</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  615: 	# Fast bypass paths: either condition alone disables all checks (OR logic).
-</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  616: 	return if $BYPASS;
+</span><span class="">  615: 	# Fast bypass paths: either condition alone disables all checks (OR logic).
+</span><span class="">  616: 	return if $BYPASS;
 </span><span class="">  617: 	return if $config{$KEY_HARNESS_BYPASS} &amp;&amp; $ENV{HARNESS_ACTIVE};
 </span><span class="">  618: 
 </span><span class="">  619: 	# Walk the call stack, skipping Sub::Private wrapper frames.
@@ -914,8 +943,8 @@ Approximate LCSAJ segments: 51<br>
 </span><span class="">  622: 		my $pkg = (caller($frame))[0];
 </span><span class="">  623: 
 </span><span class="">  624: 		# Reached the bottom of the stack with no valid caller found.
-</span><span class="">  625: 		if (!defined $pkg) {
-</span><span class="">  626: 			croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
+</span><span class="killed tooltip" data-tooltip="Mutations here were killed. Tests are effectively covering this logic.">  625: 		if (!defined $pkg) {
+</span><p> <b> Mutants (Total: 1, Killed: 1, Survived: 0)</b><p><span class="">  626: 			croak &quot;${sub_name}() is a private subroutine of ${owner_pkg}&quot;
 </span><span class="">  627: 				. &#39; and cannot be called from outside any package&#39;;
 </span><span class="">  628: 		}
 </span><span class="">  629: 
